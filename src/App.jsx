@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import './App.css'
+import Logo from "../src/images/logo-r.png";
 
 function App() {
 
@@ -11,7 +12,7 @@ function App() {
     
       <nav>
   <div class="navbar">
-    <img class="logo" src='../images/logo.png' alt="Logo"></img>
+    <img class="logo" src={Logo} alt="Logo"></img>
     <ul class="nav-links">
       <li><a href="#">Home</a></li>
       <li><a href="#">Shop</a></li>
