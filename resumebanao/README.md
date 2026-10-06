@@ -79,6 +79,10 @@ railway up --service web
 
 A resume is stored as one row: `data` (content JSON) and `style` (settings JSON). Profile photos are resized in the browser and stored inside `data` as a small JPEG, so no storage bucket is needed.
 
+## Feature plans
+
+Larger features are planned in [`changes/`](changes/README.md): one folder per change with a `plan.md` (design and decisions) and a `tasks.md` (checklist). Read the relevant folder before working on a feature.
+
 ## Not in the MVP yet
 
 - Password reset and email sign-in links (needs an email provider such as Resend)
