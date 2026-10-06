@@ -43,7 +43,7 @@ Without `DATABASE_URL` the server uses [PGlite](https://pglite.dev) (Postgres in
 
 ## Deploy on Railway
 
-One Railway service runs `npm start`, which serves both the built site (`dist/`) and `/api`, so cookies stay first-party. `railway.json` sets the start command and a health check on `/api/health`. The database tables are created automatically when the server starts.
+One Railway service runs `npm start`, which serves both the built site (`dist/`) and `/api`, so cookies stay first-party. The database tables are created automatically when the server starts.
 
 1. Create a project with a **Postgres** database and a service for this repository (root directory `resumebanao`).
 2. On the app service, set these variables:
