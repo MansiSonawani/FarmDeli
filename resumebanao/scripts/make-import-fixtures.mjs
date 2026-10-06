@@ -220,11 +220,12 @@ try {
   }
 
   // ---- expected answers ----
+  const omit = (object, keys) => Object.fromEntries(Object.entries(object).filter(([key]) => !keys.includes(key)))
   const strip = (data) => ({
     personal: { ...data.personal, photo: undefined },
-    sections: data.sections.map(({ id, visible, column, ...rest }) => ({
-      ...rest,
-      items: (rest.items ?? []).map(({ id: _id, ...item }) => item),
+    sections: data.sections.map((section) => ({
+      ...omit(section, ['id', 'visible', 'column']),
+      items: (section.items ?? []).map((item) => omit(item, ['id'])),
     })),
   })
   writeFileSync(join(out, 'sample.expected.json'), JSON.stringify(strip(sampleResume()), null, 2) + '\n')
