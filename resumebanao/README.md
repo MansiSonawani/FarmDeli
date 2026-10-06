@@ -5,7 +5,8 @@ A resume builder in the style of FlowCV, built with **React + Vite + Tailwind CS
 ## Features
 
 - **Live editor**: form on the left, real page-by-page A4/Letter preview on the right
-- **Sections**: profile, experience, education, projects, skills, languages, certificates, awards, volunteering, interests and custom sections. Sections and entries can be reordered by drag and drop, hidden, or moved between the main column and the sidebar.
+- **Rich text descriptions**: bold, italic, underline, bullet lists, links and text alignment (Tiptap). Stored as HTML and sanitized with DOMPurify before rendering, so shared resumes cannot run scripts. Older plain-text descriptions are converted automatically.
+- **Sections**: profile, experience, education, projects, skills, languages, certificates, awards, volunteering, interests and custom sections. Sections and entries can be reordered by drag and drop and hidden individually; sections can be renamed in place or moved between the main column and the sidebar.
 - **6 templates** (Classic, Modern, Minimal, Executive, Bold, Compact). Each template is a preset of the layout engine, so you can adjust any of:
   - layout: one column, or a sidebar on the left or right
   - colors and fonts

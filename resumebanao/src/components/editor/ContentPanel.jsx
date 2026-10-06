@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import {
+  Check,
   ChevronDown,
   Eye,
   EyeOff,
@@ -7,17 +8,17 @@ import {
   ImagePlus,
   PanelLeft,
   PanelRight,
+  Pencil,
   Plus,
   Trash2,
   User,
 } from 'lucide-react'
 import SortableList from './SortableList'
 import DateInput from './DateInput'
-import AiButton from './AiButton'
+import RichEditor from './RichEditor'
 import { SECTION_TYPES, newEntry, newSection, newTag } from '../../lib/defaults'
-import { formatRange } from '../../lib/format'
 import { fileToResizedDataUrl } from '../../lib/image'
-import { IconButton, TextArea, TextInput, Toggle } from '../ui'
+import { Button, IconButton, TextInput, Toggle } from '../ui'
 import Collapse from './Collapse'
 import { cx } from '../../lib/cx'
 
@@ -60,14 +61,12 @@ export default function ContentPanel({ data, style, updateData, notify }) {
           <div className="pb-3">
             <SectionCard
               section={section}
-              data={data}
               twoCol={twoCol}
               open={openId === section.id}
               onToggle={() => toggle(section.id)}
               handle={handle}
               update={(fn) => updateSection(section.id, fn)}
               remove={() => updateData((d) => void (d.sections = d.sections.filter((s) => s.id !== section.id)))}
-              notify={notify}
             />
           </div>
         )}
@@ -78,7 +77,7 @@ export default function ContentPanel({ data, style, updateData, notify }) {
   )
 }
 
-function Card({ open, onToggle, icon, title, subtitle, actions, handle, children, muted }) {
+function Card({ open, onToggle, icon, title, titleEditor, subtitle, actions, handle, children, muted }) {
   return (
     <div className={cx('rounded-2xl border border-line bg-white shadow-none', muted && 'opacity-60')}>
       <div className="flex items-center gap-1 px-2 py-2">
@@ -94,14 +93,18 @@ function Card({ open, onToggle, icon, title, subtitle, actions, handle, children
         ) : (
           <span className="p-1.5">{icon}</span>
         )}
-        <button type="button" onClick={onToggle} className="flex min-w-0 flex-1 items-center gap-2 py-1 text-left">
-          <div className="min-w-0 flex-1">
+        {titleEditor ? (
+          <div className="min-w-0 flex-1">{titleEditor}</div>
+        ) : (
+          <button type="button" onClick={onToggle} className="min-w-0 flex-1 py-1 text-left">
             <div className="truncate text-sm font-semibold text-ink">{title}</div>
             {subtitle && <div className="truncate text-xs text-muted">{subtitle}</div>}
-          </div>
-          <ChevronDown className={cx('size-4 flex-none text-muted transition-transform', open && 'rotate-180')} />
-        </button>
+          </button>
+        )}
         {actions}
+        <IconButton label={open ? 'Collapse' : 'Expand'} onClick={onToggle}>
+          <ChevronDown className={cx('size-4 transition-transform', open && 'rotate-180')} />
+        </IconButton>
       </div>
       <Collapse open={open}>
         <div className="border-t border-line p-4">{children}</div>
@@ -175,14 +178,39 @@ function PersonalForm({ data, updateData, notify }) {
   )
 }
 
-function SectionCard({ section, data, twoCol, open, onToggle, handle, update, remove, notify }) {
+function SectionCard({ section, twoCol, open, onToggle, handle, update, remove }) {
   const def = SECTION_TYPES[section.type]
+  const [editingHeading, setEditingHeading] = useState(false)
   const count = section.items?.length ?? 0
   const subtitle =
     def.kind === 'text' ? (section.content ? 'Written' : 'Empty') : `${count} ${count === 1 ? 'item' : 'items'}`
 
+  const finishHeading = () => {
+    if (!section.title.trim()) update((s) => void (s.title = def.label))
+    setEditingHeading(false)
+  }
+
+  const titleEditor = editingHeading && (
+    <input
+      aria-label="Section heading"
+      autoFocus
+      className="w-full rounded-lg border border-ink px-2 py-1 text-sm font-semibold text-ink outline-none focus:ring-4 focus:ring-accent/15"
+      value={section.title}
+      onChange={(e) => update((s) => void (s.title = e.target.value))}
+      onBlur={finishHeading}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur()
+      }}
+    />
+  )
+
   const actions = (
     <div className="flex flex-none items-center">
+      {!editingHeading && (
+        <IconButton label="Edit heading" onClick={() => setEditingHeading(true)}>
+          <Pencil className="size-3.5" />
+        </IconButton>
+      )}
       {twoCol && (
         <IconButton
           label={section.column === 'side' ? 'Move to main column' : 'Move to sidebar'}
@@ -197,16 +225,19 @@ function SectionCard({ section, data, twoCol, open, onToggle, handle, update, re
       >
         {section.visible ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
       </IconButton>
-      <IconButton
-        label="Delete section"
-        className="hover:text-red-600"
-        onClick={() => {
-          if (confirm(`Delete the "${section.title}" section?`)) remove()
-        }}
-      >
-        <Trash2 className="size-4" />
-      </IconButton>
     </div>
+  )
+
+  const deleteButton = (
+    <IconButton
+      label="Delete section"
+      className="hover:text-red-600"
+      onClick={() => {
+        if (confirm(`Delete the "${section.title}" section?`)) remove()
+      }}
+    >
+      <Trash2 className="size-4" />
+    </IconButton>
   )
 
   return (
@@ -214,187 +245,220 @@ function SectionCard({ section, data, twoCol, open, onToggle, handle, update, re
       open={open}
       onToggle={onToggle}
       title={section.title}
+      titleEditor={titleEditor}
       subtitle={subtitle}
       actions={actions}
       handle={handle}
       muted={!section.visible}
     >
-      <div className="space-y-4">
-        <TextInput
-          label="Section title"
-          value={section.title}
-          onChange={(e) => update((s) => void (s.title = e.target.value))}
-        />
-        {def.kind === 'text' && <TextSection section={section} data={data} update={update} notify={notify} />}
-        {def.kind === 'entries' && <EntriesSection section={section} def={def} update={update} notify={notify} />}
-        {def.kind === 'tags' && <TagsSection section={section} def={def} update={update} />}
-      </div>
+      {def.kind === 'entries' ? (
+        <EntriesSection section={section} def={def} update={update} footerEnd={deleteButton} />
+      ) : (
+        <div className="space-y-3">
+          {def.kind === 'text' && (
+            <RichEditor
+              key={section.id}
+              label="Text"
+              value={section.content}
+              placeholder={def.placeholder}
+              onChange={(html) => update((s) => void (s.content = html))}
+            />
+          )}
+          {def.kind === 'tags' && <TagsSection section={section} def={def} update={update} />}
+          <div className="flex justify-end">{deleteButton}</div>
+        </div>
+      )}
     </Card>
   )
 }
 
-const FORMAT_HINT = 'Start a line with "-" for a bullet point. Wrap words in **double asterisks** for bold.'
+const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1)
 
-function TextSection({ section, data, update, notify }) {
-  return (
-    <div>
-      <TextArea
-        label="Text"
-        rows={5}
-        value={section.content}
-        placeholder={SECTION_TYPES[section.type].placeholder}
-        onChange={(e) => update((s) => void (s.content = e.target.value))}
-        hint={FORMAT_HINT}
-      />
-      <div className="mt-1 flex justify-end gap-1">
-        <AiButton
-          mode="summary"
-          label="Write with AI"
-          context={data}
-          onResult={(text) => update((s) => void (s.content = text))}
-          onError={(m) => notify(m, 'error')}
-        />
-        <AiButton
-          mode="improve"
-          text={section.content}
-          onResult={(text) => update((s) => void (s.content = text))}
-          onError={(m) => notify(m, 'error')}
-        />
-      </div>
-    </div>
-  )
-}
+// A list of entries (drag to reorder, show/hide, click to edit) or, while one is being edited, its form.
+function EntriesSection({ section, def, update, footerEnd }) {
+  const [editingId, setEditingId] = useState(null)
+  const editing = section.items.find((i) => i.id === editingId)
 
-function EntriesSection({ section, def, update, notify }) {
-  const [openId, setOpenId] = useState(section.items.length === 1 ? section.items[0].id : null)
+  const updateEntry = (id) => (fn) =>
+    update((s) => {
+      const target = s.items.find((i) => i.id === id)
+      if (target) fn(target)
+    })
+  const toggleVisible = (id) => updateEntry(id)((en) => void (en.visible = en.visible === false))
 
   const add = () => {
     const entry = newEntry()
     update((s) => void s.items.push(entry))
-    setOpenId(entry.id)
+    setEditingId(entry.id)
+  }
+
+  if (editing) {
+    return (
+      <EntryForm
+        entry={editing}
+        def={def}
+        update={updateEntry(editing.id)}
+        onToggleVisible={() => toggleVisible(editing.id)}
+        remove={() => {
+          update((s) => void (s.items = s.items.filter((i) => i.id !== editing.id)))
+          setEditingId(null)
+        }}
+        onDone={() => setEditingId(null)}
+      />
+    )
   }
 
   return (
-    <div className="space-y-2">
-      <SortableList items={section.items} onReorder={(items) => update((s) => void (s.items = items))}>
-        {(entry, handle) => (
-          <div className="pb-2">
-            <EntryEditor
+    <div>
+      {section.items.length > 0 ? (
+        <SortableList items={section.items} onReorder={(items) => update((s) => void (s.items = items))}>
+          {(entry, handle) => (
+            <EntryRow
               entry={entry}
               def={def}
               handle={handle}
-              open={openId === entry.id}
-              onToggle={() => setOpenId((id) => (id === entry.id ? null : entry.id))}
-              update={(fn) =>
-                update((s) => {
-                  const target = s.items.find((i) => i.id === entry.id)
-                  if (target) fn(target)
-                })
-              }
-              remove={() => update((s) => void (s.items = s.items.filter((i) => i.id !== entry.id)))}
-              notify={notify}
+              onEdit={() => setEditingId(entry.id)}
+              onToggleVisible={() => toggleVisible(entry.id)}
             />
-          </div>
-        )}
-      </SortableList>
-      <button
-        type="button"
-        onClick={add}
-        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-line-strong py-2 text-sm font-medium text-muted hover:border-ink/40 hover:text-ink"
-      >
-        <Plus className="size-4" /> Add {def.itemLabel}
-      </button>
+          )}
+        </SortableList>
+      ) : (
+        <p className="py-2 text-center text-sm text-muted">Nothing here yet.</p>
+      )}
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <span className="size-8 flex-none" aria-hidden="true" />
+        <Button variant="secondary" size="sm" onClick={add}>
+          <Plus className="size-4" /> Add {def.itemLabel}
+        </Button>
+        {footerEnd}
+      </div>
     </div>
   )
 }
 
-function EntryEditor({ entry, def, handle, open, onToggle, update, remove, notify }) {
-  const set = (field) => (e) => {
-    const value = e.target.value
-    update((en) => void (en[field] = value))
-  }
-  const summary = [entry.subtitle, formatRange(entry)].filter(Boolean).join(' · ')
+function EntryRow({ entry, def, handle, onEdit, onToggleVisible }) {
+  const hidden = entry.visible === false
+  // Organisation first, like "Acme, Software Engineer".
+  const primary = entry.subtitle || entry.title
+  const secondary = entry.subtitle ? entry.title : ''
 
   return (
-    <div className="rounded-lg border border-line bg-paper/60">
-      <div className="flex items-center gap-1 px-1.5 py-1.5">
+    <div className="pb-1.5">
+      <div
+        className={cx(
+          'flex items-center gap-1 rounded-lg border border-line bg-paper/60 px-1.5 py-0.5',
+          hidden && 'opacity-60',
+        )}
+      >
         <button
           type="button"
           aria-label="Drag to reorder"
-          className="cursor-grab touch-none rounded p-1 text-line-strong hover:text-muted"
+          className="cursor-grab touch-none rounded p-1 text-line-strong hover:text-muted active:cursor-grabbing"
           {...handle}
         >
           <GripVertical className="size-4" />
         </button>
-        <button type="button" onClick={onToggle} className="min-w-0 flex-1 text-left">
-          <div className="truncate text-sm font-medium text-ink">
-            {entry.title || <span className="text-muted">(Untitled)</span>}
-          </div>
-          {summary && <div className="truncate text-xs text-muted">{summary}</div>}
+        <button type="button" onClick={onEdit} className="min-w-0 flex-1 truncate py-2 text-left text-sm">
+          {primary ? (
+            <>
+              <span className="font-semibold text-ink">{primary}</span>
+              {secondary && <span className="text-ink-2">, {secondary}</span>}
+            </>
+          ) : (
+            <span className="text-muted">Untitled {def.itemLabel}</span>
+          )}
         </button>
-        <IconButton label="Delete" className="hover:text-red-600" onClick={remove}>
-          <Trash2 className="size-4" />
-        </IconButton>
-        <IconButton label={open ? 'Collapse' : 'Expand'} onClick={onToggle}>
-          <ChevronDown className={cx('size-4 transition-transform', open && 'rotate-180')} />
+        <IconButton label={hidden ? 'Show on resume' : 'Hide from resume'} onClick={onToggleVisible}>
+          {hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
         </IconButton>
       </div>
-      <Collapse open={open}>
-        <div className="space-y-3 border-t border-line bg-white p-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <TextInput label={def.fields.title} value={entry.title} onChange={set('title')} />
-            {def.fields.subtitle && (
-              <TextInput label={def.fields.subtitle} value={entry.subtitle} onChange={set('subtitle')} />
-            )}
-            {def.fields.location && (
-              <TextInput label={def.fields.location} value={entry.location} onChange={set('location')} />
-            )}
-            {def.fields.link && (
-              <TextInput label={def.fields.link} value={entry.link} onChange={set('link')} placeholder="example.com" />
-            )}
-          </div>
-          {def.dates && (
-            <div className="space-y-2">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <DateInput
-                  label="Start date"
-                  value={entry.startDate}
-                  onChange={(v) => update((en) => void (en.startDate = v))}
-                />
-                <DateInput
-                  label="End date"
-                  value={entry.endDate}
-                  disabled={entry.current}
-                  onChange={(v) => update((en) => void (en.endDate = v))}
-                />
-              </div>
-              <Toggle
-                label="I currently work / study here"
-                checked={entry.current}
-                onChange={(v) => update((en) => void (en.current = v))}
-              />
-            </div>
-          )}
-          <div>
-            <TextArea
-              label="Description"
-              rows={5}
-              value={entry.description}
-              onChange={set('description')}
-              hint={FORMAT_HINT}
-            />
-            <div className="mt-1 flex justify-end">
-              <AiButton
-                mode="improve"
-                text={entry.description}
-                context={{ title: entry.title, subtitle: entry.subtitle }}
-                onResult={(text) => update((en) => void (en.description = text))}
-                onError={(m) => notify(m, 'error')}
-              />
-            </div>
-          </div>
+    </div>
+  )
+}
+
+function EntryForm({ entry, def, update, onToggleVisible, remove, onDone }) {
+  const set = (field) => (e) => {
+    const value = e.target.value
+    update((en) => void (en[field] = value))
+  }
+  const hidden = entry.visible === false
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-base font-semibold text-ink">Edit {def.itemLabel}</h3>
+        <div className="flex items-center">
+          <IconButton label={hidden ? 'Show on resume' : 'Hide from resume'} onClick={onToggleVisible}>
+            {hidden ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </IconButton>
+          <IconButton
+            label={`Delete ${def.itemLabel}`}
+            className="hover:text-red-600"
+            onClick={() => {
+              if (confirm(`Delete this ${def.itemLabel}?`)) remove()
+            }}
+          >
+            <Trash2 className="size-4" />
+          </IconButton>
         </div>
-      </Collapse>
+      </div>
+
+      <div className="space-y-3">
+        {def.fields.subtitle && (
+          <TextInput label={capitalize(def.fields.subtitle)} value={entry.subtitle} onChange={set('subtitle')} />
+        )}
+        <TextInput label={capitalize(def.fields.title)} value={entry.title} onChange={set('title')} />
+      </div>
+
+      {def.dates && (
+        <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <DateInput
+              label="Start date"
+              value={entry.startDate}
+              onChange={(v) => update((en) => void (en.startDate = v))}
+            />
+            <DateInput
+              label="End date"
+              value={entry.endDate}
+              disabled={entry.current}
+              onChange={(v) => update((en) => void (en.endDate = v))}
+            />
+          </div>
+          <Toggle
+            label="I currently work / study here"
+            checked={entry.current}
+            onChange={(v) => update((en) => void (en.current = v))}
+          />
+        </div>
+      )}
+
+      {(def.fields.location || def.fields.link) && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {def.fields.location && (
+            <TextInput
+              label="Location"
+              value={entry.location}
+              onChange={set('location')}
+              placeholder={def.fields.location}
+            />
+          )}
+          {def.fields.link && (
+            <TextInput label={def.fields.link} value={entry.link} onChange={set('link')} placeholder="example.com" />
+          )}
+        </div>
+      )}
+
+      <RichEditor
+        key={entry.id}
+        label="Description"
+        value={entry.description}
+        onChange={(html) => update((en) => void (en.description = html))}
+      />
+
+      <Button className="w-full" onClick={onDone}>
+        <Check className="size-4" /> Done
+      </Button>
     </div>
   )
 }

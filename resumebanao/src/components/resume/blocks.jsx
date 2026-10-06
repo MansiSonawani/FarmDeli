@@ -1,12 +1,15 @@
 import { SECTION_TYPES } from '../../lib/defaults'
 import { pageGeometry } from '../../lib/geometry'
+import { isRichTextEmpty } from '../../lib/richtext'
 import { ContactList, Entry, FullHeader, Heading, Photo, RichText, Tags } from './parts'
 
 // Turns resume data + style into a flat list of unsplittable "blocks" per column.
 // The paginator measures these blocks and distributes them over pages.
 
 function hasEntryContent(entry) {
-  return Boolean(entry.title || entry.subtitle || entry.description || entry.startDate || entry.endDate)
+  return Boolean(
+    entry.title || entry.subtitle || !isRichTextEmpty(entry.description) || entry.startDate || entry.endDate,
+  )
 }
 
 // Returns { header, columns: { main: [block], side: [block] } }
@@ -55,14 +58,14 @@ export function buildBlocks(data, style, { links = true } = {}) {
     const list = columns[column]
 
     if (def.kind === 'text') {
-      if (!section.content?.trim()) continue
+      if (isRichTextEmpty(section.content)) continue
       list.push({
         key: section.id,
         gap: style.sectionGap,
         node: (
           <div>
             {heading}
-            <RichText text={section.content} />
+            <RichText text={section.content} links={links} />
           </div>
         ),
       })
@@ -79,7 +82,7 @@ export function buildBlocks(data, style, { links = true } = {}) {
         ),
       })
     } else {
-      const entries = section.items.filter(hasEntryContent)
+      const entries = section.items.filter((entry) => entry.visible !== false && hasEntryContent(entry))
       entries.forEach((entry, index) => {
         const last = index === entries.length - 1
         list.push({

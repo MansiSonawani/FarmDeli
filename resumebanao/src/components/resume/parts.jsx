@@ -1,29 +1,16 @@
 import { Mail, Phone, MapPin, Globe, Link as LinkIcon } from 'lucide-react'
 import { SECTION_TYPES } from '../../lib/defaults'
-import { formatRange, hrefFor, parseRichText } from '../../lib/format'
+import { useMemo } from 'react'
+import { formatRange, hrefFor } from '../../lib/format'
+import { isRichTextEmpty, sanitizeRichText } from '../../lib/richtext'
 
 // Building blocks of the resume document. Rendered by blocks.jsx.
 
-export function RichText({ text }) {
-  const blocks = parseRichText(text)
-  if (!blocks.length) return null
-  const renderSpans = (spans) =>
-    spans.map((s, i) => (s.bold ? <strong key={i}>{s.text}</strong> : <span key={i}>{s.text}</span>))
-  return (
-    <div className="cv-rich">
-      {blocks.map((block, i) =>
-        block.type === 'ul' ? (
-          <ul key={i}>
-            {block.items.map((spans, j) => (
-              <li key={j}>{renderSpans(spans)}</li>
-            ))}
-          </ul>
-        ) : (
-          <p key={i}>{renderSpans(block.spans)}</p>
-        ),
-      )}
-    </div>
-  )
+export function RichText({ text, links = true }) {
+  const html = useMemo(() => (isRichTextEmpty(text) ? '' : sanitizeRichText(text, { links })), [text, links])
+  if (!html) return null
+  // Sanitized above: only formatting tags, safe links and text alignment survive.
+  return <div className="cv-rich" dangerouslySetInnerHTML={{ __html: html }} />
 }
 
 export function Heading({ title, style }) {
@@ -119,7 +106,7 @@ export function Entry({ entry, style, links }) {
           {links ? <a href={hrefFor(entry.link, 'url')}>{entry.link}</a> : entry.link}
         </div>
       )}
-      <RichText text={entry.description} />
+      <RichText text={entry.description} links={links} />
     </div>
   )
 }
