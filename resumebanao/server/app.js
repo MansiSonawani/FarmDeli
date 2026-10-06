@@ -292,7 +292,7 @@ export function createApp({ db, anthropicApiKey, staticRoot, runAi = defaultRunA
       )
     }
 
-    return c.json(await importResume(buffer, { kind, user: c.get('user'), fileName: file.name }))
+    return c.json(await importResume(buffer, { kind, user: c.get('user') }))
   })
 
   // ---- AI writing help (signed-in users only, so strangers cannot spend the API credits) ----

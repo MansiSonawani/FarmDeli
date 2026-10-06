@@ -2,11 +2,15 @@
 // Every reader produces a ParsedDocument; every extractor consumes one and returns an ImportResult.
 
 /**
- * One visual line of text. For PDFs, x/y/width/fontSize are in points, y measured from the top of the page.
+ * One visual line of text. A large gap inside a line (a right-aligned date, a skill "pill", a table cell) is
+ * written as a tab, so a line can be split into cells. For PDFs, x/y/width/fontSize are in points, y measured
+ * from the top of the page; `bold` and `fontSize` describe the first cell.
  * DOCX lines carry no positions; they have `heading` / `listItem` flags instead.
  * @typedef {object} Line
  * @property {string} text
  * @property {number} page 1-based page number
+ * @property {number} column 0 for a single-column page or the left column, 1 for the right column; lines come
+ *   out column by column, so a section that continues on the next page stays together
  * @property {number} [x]
  * @property {number} [y]
  * @property {number} [width]

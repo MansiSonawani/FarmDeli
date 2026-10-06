@@ -1,0 +1,47 @@
+[
+  {
+    "file": "template-classic.pdf",
+    "expected": "sample.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "template-modern.pdf",
+    "expected": "sample.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "template-minimal.pdf",
+    "expected": "sample.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "template-executive.pdf",
+    "expected": "sample.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "template-bold.pdf",
+    "expected": "sample.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "template-compact.pdf",
+    "expected": "sample.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "person-a.docx",
+    "expected": "person-a.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "person-b.docx",
+    "expected": "person-b.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "person-c.docx",
+    "expected": "person-c.expected.json",
+    "dateFormat": "MMM YYYY"
+  }
+]

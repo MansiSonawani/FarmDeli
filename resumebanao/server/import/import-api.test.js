@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createApp } from '../app.js'
 import { connect, migrate } from '../db.js'
@@ -14,12 +15,11 @@ beforeAll(async () => {
 
 afterAll(() => db?.close())
 
-const PDF = (extra = '') => Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.from(extra)])
-const DOCX = () =>
-  Buffer.concat([
-    Buffer.from([0x50, 0x4b, 0x03, 0x04]),
-    Buffer.from('....[Content_Types].xml....word/document.xml....'),
-  ])
+const fixture = (name) => readFileSync(new URL(`./__fixtures__/${name}`, import.meta.url))
+const PDF = () => fixture('template-classic.pdf')
+const DOCX = () => fixture('person-a.docx')
+// Right type, wrong contents: passes the type and size checks, which happen before the file is read.
+const FAKE_PDF = (extra = '') => Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.from(extra)])
 
 async function signUp(email) {
   const res = await app.request('/api/auth/signup', {
@@ -46,12 +46,11 @@ async function upload(content, { name = 'Jane_Doe-Resume.pdf', cookie, headers =
 describe('POST /api/import', () => {
   it('returns resume data for a PDF without saving anything', async () => {
     const cookie = await signUp('pdf@example.com')
-    const { status, body } = await upload(PDF('body'), { cookie })
+    const { status, body } = await upload(PDF(), { cookie })
     expect(status).toBe(200)
     expect(body.extractor).toBe('rules')
-    expect(body.data.personal.fullName).toBe('Jane Doe Resume')
+    expect(body.data.personal.fullName).toBe('Maya Lindqvist')
     expect(Array.isArray(body.data.sections)).toBe(true)
-    expect(body.warnings.map((w) => w.code)).toContain('STUB_EXTRACTOR')
 
     const list = await app.request('/api/resumes', { headers: { Cookie: cookie } })
     expect(await list.json()).toEqual([])
@@ -61,7 +60,7 @@ describe('POST /api/import', () => {
     const cookie = await signUp('docx@example.com')
     const { status, body } = await upload(DOCX(), { name: 'cv.docx', cookie })
     expect(status).toBe(200)
-    expect(body.data.personal.fullName).toBe('cv')
+    expect(body.data.personal.fullName).toBe('Daniel Okafor')
   })
 
   it('requires a signed-in user', async () => {
@@ -120,11 +119,11 @@ describe('POST /api/import', () => {
 
   it('rejects files over 5 MB', async () => {
     const cookie = await signUp('big@example.com')
-    const slightlyOver = PDF('x'.repeat(MAX_BYTES - 8)) // 5 MB + 1 byte, fits the envelope allowance
+    const slightlyOver = FAKE_PDF('x'.repeat(MAX_BYTES - 8)) // 5 MB + 1 byte, fits the envelope allowance
     const a = await upload(slightlyOver, { cookie })
     expect(a.status).toBe(413)
     expect(a.body.code).toBe('FILE_TOO_LARGE')
-    const wayOver = PDF('x'.repeat(MAX_BYTES + 200_000)) // stopped by the request size limit
+    const wayOver = FAKE_PDF('x'.repeat(MAX_BYTES + 200_000)) // stopped by the request size limit
     const b = await upload(wayOver, { cookie })
     expect(b.status).toBe(413)
     expect(b.body.code).toBe('FILE_TOO_LARGE')
@@ -140,6 +139,19 @@ describe('POST /api/import', () => {
 
     const other = await signUp('limit-other@example.com')
     expect((await upload(PDF(), { cookie: other })).status).toBe(200)
+  })
+
+  it('reports unreadable, scanned and too-long files with a code the client can act on', async () => {
+    const cookie = await signUp('unreadable@example.com')
+    const broken = await upload(FAKE_PDF('not really a pdf'), { cookie })
+    expect(broken.status).toBe(422)
+    expect(broken.body.code).toBe('UNREADABLE')
+    const scanned = await upload(fixture('scanned.pdf'), { cookie })
+    expect(scanned.status).toBe(422)
+    expect(scanned.body.code).toBe('SCANNED_PDF')
+    const long = await upload(fixture('too-long.pdf'), { cookie })
+    expect(long.status).toBe(422)
+    expect(long.body.code).toBe('TOO_MANY_PAGES')
   })
 
   it('leaves the JSON-only rule in place for other routes', async () => {

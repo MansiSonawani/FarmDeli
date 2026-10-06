@@ -1,0 +1,114 @@
+{
+  "personal": {
+    "fullName": "Lucas Martin",
+    "jobTitle": "Marketing Manager",
+    "email": "lucas.martin@example.fr",
+    "phone": "+33 6 12 34 56 78",
+    "location": "Lyon, France",
+    "website": "",
+    "linkedin": ""
+  },
+  "sections": [
+    {
+      "type": "summary",
+      "title": "Summary",
+      "content": "Marketing manager focused on brand growth for consumer and cultural organisations.",
+      "items": []
+    },
+    {
+      "type": "experience",
+      "title": "Experience",
+      "items": [
+        {
+          "title": "Marketing Manager",
+          "subtitle": "Bleu Horizon Media",
+          "location": "Lyon",
+          "link": "",
+          "startDate": "2019-06",
+          "endDate": "",
+          "current": true,
+          "description": "- Grew newsletter subscribers from 8,000 to 31,000 in two years\n- Managed an annual campaign budget of 400k EUR"
+        },
+        {
+          "title": "Marketing Specialist",
+          "subtitle": "Atelier Nord",
+          "location": "Paris",
+          "link": "",
+          "startDate": "2016",
+          "endDate": "2019",
+          "current": false,
+          "description": "- Ran social media for four retail brands"
+        }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "Education",
+      "items": [
+        {
+          "title": "MSc Marketing",
+          "subtitle": "EM Example Business School",
+          "location": "Lyon",
+          "link": "",
+          "startDate": "",
+          "endDate": "2016",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "languages",
+      "title": "Languages",
+      "items": [
+        {
+          "name": "French",
+          "info": "",
+          "level": 4
+        },
+        {
+          "name": "English",
+          "info": "",
+          "level": 3
+        },
+        {
+          "name": "Spanish",
+          "info": "",
+          "level": 1
+        }
+      ]
+    },
+    {
+      "type": "awards",
+      "title": "Awards",
+      "items": [
+        {
+          "title": "Digital Campaign of the Year",
+          "subtitle": "Example Marketing Awards",
+          "location": "",
+          "link": "",
+          "startDate": "2022",
+          "endDate": "",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "volunteering",
+      "title": "Volunteering",
+      "items": [
+        {
+          "title": "Volunteer Coordinator",
+          "subtitle": "Lyon Food Bank",
+          "location": "",
+          "link": "",
+          "startDate": "2018",
+          "endDate": "2020",
+          "current": false,
+          "description": ""
+        }
+      ]
+    }
+  ]
+}
