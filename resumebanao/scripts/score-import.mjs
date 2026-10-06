@@ -21,7 +21,7 @@ const rows = []
 for (const { file, expected, dateFormat } of JSON.parse(read('manifest.json'))) {
   if (filter && !file.includes(filter)) continue
   const buffer = read(file)
-  const { data, warnings } = await importResume(buffer, { kind: sniffKind(buffer) })
+  const { data, warnings } = await importResume(buffer, { kind: sniffKind(buffer), log: () => {} })
   const result = scoreImport(data, JSON.parse(read(expected)), { dateFormat })
   rows.push({
     file,

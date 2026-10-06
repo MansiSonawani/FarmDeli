@@ -18,6 +18,7 @@ A resume builder in the style of FlowCV, built with **React + Vite + Tailwind CS
 - **Real pagination**: content is measured and split into pages without breaking entries apart, so the preview is exactly what gets printed.
 - **PDF download** through the browser's print dialog ("Save as PDF"). This produces a vector PDF with selectable text and clickable links, which applicant tracking systems can read.
 - **Public share link** at `/r/<slug>`, which anyone can view and download.
+- **Resume import**: upload a PDF or Word file and the details are filled into a new resume (see below).
 - **Accounts** with email + password (httpOnly session cookies, scrypt password hashes). Every resume query is scoped to its owner on the server.
 - **AI writing help** (server only for now): `POST /api/ai` rewrites text with the Claude API. The editor buttons are switched off until the AI output is converted to the rich text format.
 - **Autosave**, a dashboard (create, duplicate, rename, delete), and a mobile layout with an edit/preview toggle.
@@ -62,6 +63,16 @@ railway variables --service web --set 'DATABASE_URL=${{Postgres.DATABASE_URL}}'
 railway up --service web
 ```
 
+## Resume import
+
+In the New resume dialog, "Import an existing resume" takes a PDF or Word (.docx) file (up to 5 MB and 4 pages), reads it on the server, and opens a new resume with the details filled in. Because templates are only style presets over the same data, an imported resume works with every template. Files are processed in memory and never stored; one log line per import records the type, extractor, pages, time and warning count, never the content.
+
+- **Extractors are swappable.** `IMPORT_EXTRACTOR` (default `rules`) names the extractor; `free:rules,premium:ai` will pick by plan once plans exist. If the chosen one fails, `rules` runs instead with a warning. A new extractor implements the contract in `server/import/types.js` and registers in `server/import/extractors/index.js`; the shared normalize and verify stages then apply to it automatically.
+- **The `rules` extractor** uses no external service. It finds sections by name and by the document's own heading style, entries by their dates, and reads layout (columns, indentation, wrapped lines) from PDFs. It copes with one- and two-column layouts, timelines and typical Word files. It cannot read scanned PDFs (no text layer) or text boxes, headers and footers in Word files, and it will misread unusual designs; the editor tells users to review every import.
+- **Measuring accuracy.** `npm run import:score` imports every fixture in `server/import/__fixtures__/` and prints the per-field score (`-- --verbose` lists every mismatch); `npm test` fails if a fixture drops below `baseline.json`. `npm run import:fixtures` regenerates the fixtures (it needs Edge or Chrome and `VITE_DEMO_MODE=false npm run build` first). The fixtures are made-up people and were written while the rules were being built, so a score of 100% means the rules handle those layouts, not that real resumes will import perfectly. Add a fixture whenever a real layout fails.
+
+Design notes and the task list: [`changes/0001-resume-import/`](changes/0001-resume-import/plan.md).
+
 ## How it works
 
 | Piece                                            | Where                                                              |
@@ -75,6 +86,7 @@ railway up --service web
 | Editor UI                                        | `src/pages/Editor.jsx`, `src/components/editor/*`                  |
 | API routes, auth, static file serving            | `server/app.js`, `server/auth.js`                                  |
 | Database schema                                  | `server/schema.sql`                                                |
+| Resume import (readers, extractors, clean-up)    | `server/import/`                                                   |
 | AI writing help                                  | `server/ai.js`                                                     |
 
 A resume is stored as one row: `data` (content JSON) and `style` (settings JSON). Profile photos are resized in the browser and stored inside `data` as a small JPEG, so no storage bucket is needed.

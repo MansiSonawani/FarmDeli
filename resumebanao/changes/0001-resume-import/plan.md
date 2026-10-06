@@ -1,6 +1,6 @@
 # 0001 – Resume import (upload an existing resume, pre-fill the editor)
 
-**Status:** In progress (M1 done) · **Created:** 2026-10-06 · **Tasks:** [tasks.md](tasks.md)
+**Status:** Done for the rules extractor (M1–M6); AI extractor not started · **Created:** 2026-10-06 · **Tasks:** [tasks.md](tasks.md)
 
 ## Summary
 
@@ -167,6 +167,17 @@ The editor banner tells users to review the import; this is part of the feature,
 - **M1:** the daily limit counts files that passed the type and size checks. Files rejected for type or size do not count; files that fail later (for example a scanned PDF) do.
 - **M1:** the server runs on plain Node, so any `src/` file it imports needs explicit `.js` extensions in its own imports (Vite and Vitest do not require this, which hid the problem in tests). `server/import/node-resolution.test.js` loads the shared file under Node to guard this.
 - **M1:** until M2 and M3 land, `readers/pdf.js` and `readers/docx.js` delegate to `readers/placeholder.js` and the `rules` extractor is a stub (both marked with TODO comments).
+
+- **M2 (readers):** added the error code `UNREADABLE` (422) for files that look right but cannot be parsed, and `NO_CONTENT` is raised by normalize. pdf.js needs `fontExtraProperties` to expose font names (how bold is detected). Lines come out column by column across all pages, and carry `column`, `cellX` (where each tab-separated cell starts), `firstWordWidth` and `rightLimit` (a margin estimate from the page width) for the extractors. A left column that is mostly dates is a timeline, not a sidebar, and is read as one column. Letter-spaced headings ("E X P E R I E N C E") are collapsed. Word files are rejected before parsing if the zip declares an absurd uncompressed size. `readers/placeholder.js` is gone.
+- **M3 (rules):** wrapped lines are told from new bullets by whether the next line's first word would have fitted on the previous line (`wrap.js`), with the line spacing as a tie-breaker and the lower-case clue only when there is no layout data (it must not apply to lists: "iOS", "jQuery"). A two-piece comma head ("Title, Company") keeps the second piece as the company unless it is a known place (`places.js`). For two-column files the sections are put in the usual resume order. `T11` also covers the summary text.
+- **M5 (accuracy):** 14 fixtures, not the 11 planned: six template PDFs, six Word files (three layouts written alongside the rules, three harder ones written afterwards), and two PDFs made from hand-written HTML (a Word-style resume and a timeline). Both the first and the second pass of fixtures exposed real bugs (merged bullets, a company read as a place, lower-case list items merged, a lost website). `scripts/score-import.mjs` (`npm run import:score`) prints the table and every mismatch.
+
+## Known limits
+
+- **The 100% scores are a development measure.** The fixtures are made-up people, and I wrote them while building the rules. They show the rules handle those layouts; they do not estimate accuracy on real resumes, which will be lower. Whenever a real resume fails, add it (anonymised) as a fixture first, then fix the rules, so the score reflects reality.
+- Text boxes, headers and footers in Word files are not read (a `CONTACT_MISSING` warning explains it). Scanned PDFs are reported, not read (no OCR).
+- Layouts the rules do not model: dates in a column far from their text on different lines, tables of skills with graphical ratings, resumes in languages other than English (section names, month names and the place and title word lists are English), multi-line headers with the name split into more than two lines.
+- Section headings are matched against an English dictionary of common names plus the document's own heading style.
 
 ## Risks and open questions
 

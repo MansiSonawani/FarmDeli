@@ -20,6 +20,6 @@ changes/
 
 ## Index
 
-| #    | Change                                      | Status                |
-| ---- | ------------------------------------------- | --------------------- |
-| 0001 | [Resume import](0001-resume-import/plan.md) | In progress (M1 done) |
+| #    | Change                                      | Status                                       |
+| ---- | ------------------------------------------- | -------------------------------------------- |
+| 0001 | [Resume import](0001-resume-import/plan.md) | Done (rules extractor); AI extractor pending |
