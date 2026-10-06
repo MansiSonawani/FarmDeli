@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  background: #fff;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
