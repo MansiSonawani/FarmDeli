@@ -16,6 +16,9 @@ import {
   normalizeEmail,
   verifyPassword,
 } from './auth.js'
+import { ImportError, MAX_BYTES, MAX_IMPORTS_PER_DAY } from './import/errors.js'
+import { importResume } from './import/index.js'
+import { inspectUpload } from './import/limits.js'
 import { createRateLimiter } from './rate-limit.js'
 
 const COLUMNS = 'id, title, data, style, is_public, slug, created_at, updated_at'
@@ -73,6 +76,7 @@ export function createApp({ db, anthropicApiKey, staticRoot, runAi = defaultRunA
   const api = new Hono()
   const authLimiter = createRateLimiter({ limit: 20, windowMs: 15 * 60_000 })
   const aiLimiter = createRateLimiter({ limit: 30, windowMs: 60 * 60_000 })
+  const importLimiter = createRateLimiter({ limit: MAX_IMPORTS_PER_DAY, windowMs: 24 * 60 * 60_000 })
 
   app.use(
     '*',
@@ -123,18 +127,34 @@ export function createApp({ db, anthropicApiKey, staticRoot, runAi = defaultRunA
   }
 
   // Cross-site forms cannot send JSON, so requiring it on writes blocks CSRF on top of SameSite cookies.
+  // The resume upload is multipart, which a cross-site form *can* send, so that route instead requires a
+  // custom header: browsers only let a page add one to a cross-origin request after a CORS preflight,
+  // and this server never approves one.
+  const isUpload = (c) => c.req.path === '/api/import'
   api.use('*', async (c, next) => {
     if (!['GET', 'HEAD', 'OPTIONS'].includes(c.req.method)) {
-      if (!c.req.header('content-type')?.startsWith('application/json')) {
+      if (isUpload(c)) {
+        if (c.req.header('x-requested-with') !== 'resumebanao') return c.json({ error: 'Forbidden' }, 403)
+        if (!c.req.header('content-type')?.startsWith('multipart/form-data')) {
+          return c.json({ error: 'Expected multipart/form-data' }, 415)
+        }
+      } else if (!c.req.header('content-type')?.startsWith('application/json')) {
         return c.json({ error: 'Expected application/json' }, 415)
       }
     }
     await next()
   })
-  api.use('*', bodyLimit({ maxSize: 2 * 1024 * 1024, onError: (c) => c.json({ error: 'Request too large' }, 413) }))
+  const jsonLimit = bodyLimit({ maxSize: 2 * 1024 * 1024, onError: (c) => c.json({ error: 'Request too large' }, 413) })
+  // A little headroom over the file limit for the multipart envelope; the file itself is checked exactly.
+  const uploadLimit = bodyLimit({
+    maxSize: MAX_BYTES + 64 * 1024,
+    onError: (c) => c.json({ error: 'That file is over 5 MB.', code: 'FILE_TOO_LARGE' }, 413),
+  })
+  api.use('*', (c, next) => (isUpload(c) ? uploadLimit(c, next) : jsonLimit(c, next)))
 
   api.onError((error, c) => {
     if (error instanceof HttpError) return c.json({ error: error.message }, error.status)
+    if (error instanceof ImportError) return c.json({ error: error.message, code: error.code }, error.status)
     console.error(error)
     return c.json({ error: 'Something went wrong. Please try again.' }, 500)
   })
@@ -252,6 +272,27 @@ export function createApp({ db, anthropicApiKey, staticRoot, runAi = defaultRunA
     const { rows } = await db.query(`select ${COLUMNS} from resumes where slug = $1 and is_public = true`, [slug])
     if (!rows[0]) throw new HttpError(404, 'Resume not found')
     return c.json(rows[0])
+  })
+
+  // ---- Resume import: reads an uploaded PDF/DOCX and returns resume data; the client saves it ----
+
+  api.post('/import', requireUser, async (c) => {
+    const form = await c.req.parseBody()
+    const file = form.file
+    if (!(file instanceof File)) throw new ImportError(400, 'NO_FILE', 'Choose a PDF or Word file to import.')
+
+    // Wrong-type and oversized files are rejected before they count against the daily limit.
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const kind = inspectUpload(buffer)
+    if (!importLimiter(c.get('user').id)) {
+      throw new ImportError(
+        429,
+        'RATE_LIMITED',
+        `You can import ${MAX_IMPORTS_PER_DAY} resumes a day. Try again tomorrow.`,
+      )
+    }
+
+    return c.json(await importResume(buffer, { kind, user: c.get('user'), fileName: file.name }))
   })
 
   // ---- AI writing help (signed-in users only, so strangers cannot spend the API credits) ----

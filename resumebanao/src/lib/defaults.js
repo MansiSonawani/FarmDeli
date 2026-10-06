@@ -1,4 +1,4 @@
-import { uid } from './id'
+import { uid } from './id.js'
 
 // Every section has a `kind` that decides how it is edited and rendered:
 //   text    – one rich-text block (profile / summary)

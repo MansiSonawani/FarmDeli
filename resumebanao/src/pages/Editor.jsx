@@ -1,5 +1,5 @@
 import { useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import {
   ArrowLeft,
@@ -15,6 +15,7 @@ import {
   TriangleAlert,
 } from 'lucide-react'
 import ContentPanel from '../components/editor/ContentPanel'
+import ImportBanner from '../components/editor/ImportBanner'
 import CustomizePanel from '../components/editor/CustomizePanel'
 import ResumePreview from '../components/resume/ResumePreview'
 import { Button, FullPageSpinner, Modal, Toggle } from '../components/ui'
@@ -30,7 +31,11 @@ const SAVE_DELAY = 800
 
 export default function Editor() {
   const { id } = useParams()
+  const location = useLocation()
+  const navigate = useNavigate()
   const notify = useToast()
+  // Set by the dashboard after an import; kept in the history entry so a reload still shows it.
+  const [importInfo, setImportInfo] = useState(location.state?.imported ?? null)
   const [resume, setResume] = useState(null)
   const [error, setError] = useState(null)
   const [tab, setTab] = useState('content')
@@ -160,6 +165,17 @@ export default function Editor() {
           </Button>
         </div>
       </header>
+
+      {importInfo && (
+        <ImportBanner
+          fileName={importInfo.fileName}
+          warnings={importInfo.warnings}
+          onDismiss={() => {
+            setImportInfo(null)
+            navigate(location.pathname, { replace: true, state: null })
+          }}
+        />
+      )}
 
       <div className="flex min-h-0 flex-1">
         <aside
