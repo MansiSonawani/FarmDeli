@@ -11,6 +11,7 @@ import { isSafeZip } from './zip.js'
 // Not read: text boxes, headers and footers. If contact details live there, the extractor warns about it.
 
 const CHARS_PER_PAGE = 4_500
+const NBSP = String.fromCharCode(0xa0) // Word uses non-breaking spaces freely
 const TAG_HEADING = /^h[1-6]$/
 const TAG_BLOCK = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
 const TAG_BOLD = new Set(['strong', 'b'])
@@ -94,7 +95,8 @@ function lineFrom(parts, flags) {
   const text = parts
     .map((p) => p.text)
     .join('')
-    .replace(/[  ]+/g, ' ')
+    .replaceAll(NBSP, ' ')
+    .replace(/ +/g, ' ')
     .replace(/ ?\t ?/g, '\t')
     .trim()
   if (!text) return null
