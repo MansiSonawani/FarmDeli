@@ -23,7 +23,7 @@ export default function AiButton({ mode, text, context, onResult, onError, label
       type="button"
       onClick={run}
       disabled={disabled}
-      title={aiAvailable ? undefined : 'Connect Supabase and deploy the ai-assist function to enable AI'}
+      title={aiAvailable ? undefined : 'AI help is available when you sign in to an account'}
       className={cx(
         'inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition',
         disabled ? 'cursor-not-allowed text-muted' : 'text-ink hover:bg-paper-2',

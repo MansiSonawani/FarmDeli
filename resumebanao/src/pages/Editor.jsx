@@ -24,7 +24,7 @@ import { cx } from '../lib/cx'
 import { DEFAULT_STYLE } from '../lib/defaults'
 import { EASE_OUT } from '../lib/motion'
 import { getResume, setSharing, updateResume } from '../lib/store'
-import { isLocalMode } from '../lib/supabase'
+import { isLocalMode } from '../lib/api'
 
 const SAVE_DELAY = 800
 

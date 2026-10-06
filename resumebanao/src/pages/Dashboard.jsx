@@ -15,7 +15,7 @@ import { DEFAULT_STYLE, emptyResume, sampleResume } from '../lib/defaults'
 import { timeAgo } from '../lib/format'
 import { EASE_OUT } from '../lib/motion'
 import { createResume, deleteResume, duplicateResume, listResumes, updateResume } from '../lib/store'
-import { isLocalMode } from '../lib/supabase'
+import { isLocalMode } from '../lib/api'
 import { templateStyle } from '../lib/templates'
 
 export default function Dashboard() {
@@ -87,8 +87,7 @@ export default function Dashboard() {
         <div className="mx-auto mt-4 max-w-7xl px-5 sm:px-8">
           <p className="rounded-2xl border border-line bg-white/60 px-4 py-3 text-sm text-ink-2">
             <span className="mr-2 inline-block size-1.5 -translate-y-0.5 rounded-full bg-accent" aria-hidden="true" />
-            Demo mode — resumes are saved in this browser. Add your Supabase keys to{' '}
-            <code className="font-mono text-xs">.env</code> for accounts and cloud sync.
+            Demo mode — resumes are saved in this browser. The deployed app has accounts and cloud sync.
           </p>
         </div>
       )}

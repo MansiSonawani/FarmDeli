@@ -1,42 +1,24 @@
-import { supabase, isLocalMode } from './supabase'
+import { api, isLocalMode } from './api'
 import { uid, slugify, randomSuffix } from './id'
 import { emptyResume } from './defaults'
 import { templateStyle } from './templates'
 
-// Data access for resumes. Uses Supabase when it is configured, otherwise a
+// Data access for resumes. Uses the API in server/ in production, otherwise a
 // localStorage-backed store with the same API so the app works without a backend.
 
-const COLUMNS = 'id, title, data, style, is_public, slug, created_at, updated_at'
-
-function unwrap({ data, error }) {
-  if (error) throw error
-  return data
-}
-
 const remote = {
-  async list() {
-    // RLS also lets signed-in users read other people's public resumes, so filter to the owner.
-    const { data } = await supabase.auth.getSession()
-    const userId = data.session?.user.id
-    if (!userId) return []
-    return unwrap(
-      await supabase.from('resumes').select(COLUMNS).eq('user_id', userId).order('updated_at', { ascending: false }),
-    )
-  },
-  async get(id) {
-    return unwrap(await supabase.from('resumes').select(COLUMNS).eq('id', id).single())
-  },
-  async create(values) {
-    return unwrap(await supabase.from('resumes').insert(values).select(COLUMNS).single())
-  },
-  async update(id, patch) {
-    return unwrap(await supabase.from('resumes').update(patch).eq('id', id).select(COLUMNS).single())
-  },
-  async remove(id) {
-    unwrap(await supabase.from('resumes').delete().eq('id', id))
-  },
+  list: () => api('/resumes'),
+  get: (id) => api(`/resumes/${encodeURIComponent(id)}`),
+  create: (values) => api('/resumes', { method: 'POST', body: values }),
+  update: (id, patch) => api(`/resumes/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch }),
+  remove: (id) => api(`/resumes/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   async getPublic(slug) {
-    return unwrap(await supabase.from('resumes').select(COLUMNS).eq('slug', slug).eq('is_public', true).maybeSingle())
+    try {
+      return await api(`/public/${encodeURIComponent(slug)}`)
+    } catch (error) {
+      if (error.status === 404) return null
+      throw error
+    }
   },
 }
 

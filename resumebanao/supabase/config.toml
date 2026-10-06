@@ -1,5 +1,0 @@
-# Minimal Supabase CLI config (used by `supabase functions deploy` / `supabase db push`).
-# Run `supabase link --project-ref <your-project-ref>` once before deploying.
-
-[functions.ai-assist]
-verify_jwt = true

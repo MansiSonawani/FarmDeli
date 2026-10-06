@@ -1,6 +1,6 @@
 # resumebanao (MVP)
 
-A resume builder in the style of FlowCV, built with **React + Vite + Tailwind CSS** and **Supabase**.
+A resume builder in the style of FlowCV, built with **React + Vite + Tailwind CSS**, a small **Node (Hono) API** and **Postgres**, deployed on **Railway**.
 
 ## Features
 
@@ -17,63 +17,49 @@ A resume builder in the style of FlowCV, built with **React + Vite + Tailwind CS
 - **Real pagination**: content is measured and split into pages without breaking entries apart, so the preview is exactly what gets printed.
 - **PDF download** through the browser's print dialog ("Save as PDF"). This produces a vector PDF with selectable text and clickable links, which applicant tracking systems can read.
 - **Public share link** at `/r/<slug>`, which anyone can view and download.
-- **Accounts** with email + password or a magic link (Supabase Auth). Resumes are stored in Postgres with row-level security.
-- **AI writing help**: "Improve with AI" for descriptions and "Write with AI" for the profile summary. These run through a Supabase Edge Function that calls the Claude API.
+- **Accounts** with email + password (httpOnly session cookies, scrypt password hashes). Every resume query is scoped to its owner on the server.
+- **AI writing help**: "Improve with AI" for descriptions and "Write with AI" for the profile summary, through `POST /api/ai`, which calls the Claude API.
 - **Autosave**, a dashboard (create, duplicate, rename, delete), and a mobile layout with an edit/preview toggle.
-- **Demo mode**: without Supabase keys the app runs fully in the browser, with data saved in `localStorage`.
+- **Demo mode**: with `VITE_DEMO_MODE=true` the app runs fully in the browser, with data saved in `localStorage`.
 
 ## Quick start
 
 ```bash
 cd resumebanao
 npm install
-npm run dev          # http://localhost:5173 – runs in demo mode until .env is set
-npm test             # unit tests (pagination + formatting)
+cp .env.example .env # VITE_DEMO_MODE=true
+npm run dev          # http://localhost:5173 – demo mode, no backend needed
+npm test             # unit tests + API tests (in-memory Postgres)
 npm run build        # production build in dist/
 ```
 
-## Connect Supabase
-
-1. Create a project at [supabase.com](https://supabase.com).
-2. **Database**: open _SQL Editor_ and run [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql). It creates the `resumes` table, the row-level-security policies and the `updated_at` trigger.
-3. **Keys**: copy `.env.example` to `.env` and fill in the values from _Project Settings → API_:
-   ```
-   VITE_SUPABASE_URL=https://<project-ref>.supabase.co
-   VITE_SUPABASE_ANON_KEY=<anon / publishable key>
-   ```
-   Only use the **anon/publishable** key. Never put the `service_role` key in the frontend.
-4. **Auth URLs**: in _Authentication → URL Configuration_, set the Site URL to your app's URL (for example `http://localhost:5173`) and add `<your-url>/app` to the redirect URLs. Email confirmation is on by default; turn it off under _Authentication → Providers → Email_ if you want people to sign up instantly.
-5. Restart `npm run dev`.
-
-### AI writing help (optional)
-
-The AI buttons call the `ai-assist` Edge Function, which uses the Claude API (`claude-opus-5-5`).
+To run against the real API locally, set `VITE_DEMO_MODE=false` in `.env` and start the server in a second terminal:
 
 ```bash
-npm install -g supabase                      # or: npx supabase ...
-supabase login
-supabase link --project-ref <project-ref>
-supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-supabase functions deploy ai-assist
+npm run dev:server   # http://localhost:3000; Vite proxies /api to it
 ```
 
-The function only accepts signed-in users (JWT verification is on), and it never receives the profile photo.
+Without `DATABASE_URL` the server uses [PGlite](https://pglite.dev) (Postgres in-process), so nothing needs installing, but data resets when it restarts.
 
-## Deploy the frontend
+## Deploy on Railway
 
-### Netlify (recommended)
+One Railway service runs `npm start`, which serves both the built site (`dist/`) and `/api`, so cookies stay first-party. `railway.json` sets the start command and a health check on `/api/health`. The database tables are created automatically when the server starts.
 
-`netlify.toml` in the repository root already sets the base directory (`resumebanao`), build command, publish folder, Node version, single-page-app routing, security headers and asset caching.
+1. Create a project with a **Postgres** database and a service for this repository (root directory `resumebanao`).
+2. On the app service, set these variables:
+   ```
+   DATABASE_URL=${{Postgres.DATABASE_URL}}
+   ANTHROPIC_API_KEY=sk-ant-...   # optional, enables the AI buttons
+   ```
+3. Generate a domain under **Settings → Networking**.
 
-1. In Netlify: **Add new site → Import an existing project → GitHub** and pick this repository. The build settings are filled in from `netlify.toml`.
-2. Under **Site configuration → Environment variables**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, then trigger a deploy. Vite bakes these in at build time, so redeploy after changing them.
-3. In Supabase, add the Netlify URL (for example `https://resumebanao.netlify.app`) as the **Site URL** and add `https://resumebanao.netlify.app/app` to the **Redirect URLs** (_Authentication → URL Configuration_). Otherwise sign-up and magic-link emails point to the wrong address.
+With the CLI, from `resumebanao/`:
 
-Every push to the production branch redeploys, and pull requests get preview URLs.
-
-### Other hosts
-
-Any static host works. `vercel.json` covers Vercel; elsewhere, rewrite every route to `index.html` so `/app/...` and `/r/...` links work.
+```bash
+railway add --database postgres
+railway variables --service web --set 'DATABASE_URL=${{Postgres.DATABASE_URL}}'
+railway up --service web
+```
 
 ## How it works
 
@@ -84,14 +70,17 @@ Any static host works. `vercel.json` covers Vercel; elsewhere, rewrite every rou
 | Data → blocks per column                         | `src/components/resume/blocks.jsx`                                 |
 | Measure blocks → pack into pages → render        | `src/components/resume/PaginatedResume.jsx`, `src/lib/paginate.js` |
 | Resume CSS (shared by preview and print)         | `src/components/resume/resume.css`                                 |
-| Supabase / localStorage data access              | `src/lib/store.js`                                                 |
+| API / localStorage data access                   | `src/lib/store.js`, `src/lib/api.js`                               |
 | Editor UI                                        | `src/pages/Editor.jsx`, `src/components/editor/*`                  |
-| AI edge function                                 | `supabase/functions/ai-assist/index.ts`                            |
+| API routes, auth, static file serving            | `server/app.js`, `server/auth.js`                                  |
+| Database schema                                  | `server/schema.sql`                                                |
+| AI writing help                                  | `server/ai.js`                                                     |
 
 A resume is stored as one row: `data` (content JSON) and `style` (settings JSON). Profile photos are resized in the browser and stored inside `data` as a small JPEG, so no storage bucket is needed.
 
 ## Not in the MVP yet
 
+- Password reset and email sign-in links (needs an email provider such as Resend)
 - Payments and plan limits (Stripe)
 - Cover letters, which can reuse the same rendering engine
 - Server-side PDF generation (headless Chromium) for a one-click download without the print dialog

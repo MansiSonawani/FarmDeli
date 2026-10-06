@@ -1,18 +1,5 @@
-// Supabase Edge Function: AI writing help for the resume editor.
-//
-// Deploy:   supabase functions deploy ai-assist
-// Secret:   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-//
-// Supabase verifies the caller's JWT before this code runs (verify_jwt is on by
-// default), so only signed-in users can spend your API credits.
-
-import Anthropic from 'npm:@anthropic-ai/sdk'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+// AI writing help for the resume editor (the "Improve with AI" and "Write with AI" buttons).
+import Anthropic from '@anthropic-ai/sdk'
 
 const MAX_INPUT_CHARS = 8000
 
@@ -25,17 +12,10 @@ Style rules:
 - Bullet points start with "- ". Use **double asterisks** only for the one or two most important figures, if any.
 - Write in the same language as the user's text.`
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
-
-function buildPrompt(mode: string, text: string, context: unknown): string | null {
+export function buildPrompt(mode, text, context) {
   const ctx = JSON.stringify(context ?? {}).slice(0, MAX_INPUT_CHARS)
   if (mode === 'improve') {
-    if (!text?.trim()) return null
+    if (typeof text !== 'string' || !text.trim()) return null
     return `Rewrite this resume text as 2-5 concise bullet points (or, if it is a profile summary, as 2-3 tight sentences without bullets). Context about the entry: ${ctx}
 
 Text to improve:
@@ -50,22 +30,12 @@ ${ctx}`
   return null
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
-  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
+// Returns { status, body } so the HTTP layer stays thin.
+export async function runAi({ apiKey, mode, text, context }) {
+  if (!apiKey) return { status: 503, body: { error: 'AI is not configured: set the ANTHROPIC_API_KEY variable.' } }
 
-  const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
-  if (!apiKey) return json({ error: 'AI is not configured: set the ANTHROPIC_API_KEY secret.' }, 500)
-
-  let body: { mode?: string; text?: string; context?: unknown }
-  try {
-    body = await req.json()
-  } catch {
-    return json({ error: 'Invalid JSON body' }, 400)
-  }
-
-  const prompt = buildPrompt(body.mode ?? '', body.text ?? '', body.context)
-  if (!prompt) return json({ error: 'Nothing to work with – add some text first.' }, 400)
+  const prompt = buildPrompt(mode, text, context)
+  if (!prompt) return { status: 400, body: { error: 'Nothing to work with – add some text first.' } }
 
   const client = new Anthropic({ apiKey })
   try {
@@ -82,25 +52,25 @@ Deno.serve(async (req) => {
     })
 
     if (response.stop_reason === 'refusal') {
-      return json({ error: 'The AI could not help with this text. Try rephrasing it.' }, 422)
+      return { status: 422, body: { error: 'The AI could not help with this text. Try rephrasing it.' } }
     }
 
-    const text = response.content
+    const output = response.content
       .filter((block) => block.type === 'text')
       .map((block) => block.text)
       .join('')
       .trim()
-    return json({ text })
+    return { status: 200, body: { text: output } }
   } catch (error) {
     if (error instanceof Anthropic.RateLimitError) {
-      return json({ error: 'The AI is busy right now. Please try again in a minute.' }, 429)
+      return { status: 429, body: { error: 'The AI is busy right now. Please try again in a minute.' } }
     }
     if (error instanceof Anthropic.AuthenticationError) {
-      return json({ error: 'AI is misconfigured: the Anthropic API key was rejected.' }, 500)
+      return { status: 500, body: { error: 'AI is misconfigured: the Anthropic API key was rejected.' } }
     }
     if (error instanceof Anthropic.APIError) {
-      return json({ error: `AI request failed (${error.status}).` }, 502)
+      return { status: 502, body: { error: `AI request failed (${error.status}).` } }
     }
-    return json({ error: 'AI request failed.' }, 502)
+    return { status: 502, body: { error: 'AI request failed.' } }
   }
-})
+}
