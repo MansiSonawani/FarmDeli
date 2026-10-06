@@ -19,7 +19,7 @@ A resume builder in the style of FlowCV, built with **React + Vite + Tailwind CS
 - **PDF download** through the browser's print dialog ("Save as PDF"). This produces a vector PDF with selectable text and clickable links, which applicant tracking systems can read.
 - **Public share link** at `/r/<slug>`, which anyone can view and download.
 - **Accounts** with email + password (httpOnly session cookies, scrypt password hashes). Every resume query is scoped to its owner on the server.
-- **AI writing help**: "Improve with AI" for descriptions and "Write with AI" for the profile summary, through `POST /api/ai`, which calls the Claude API.
+- **AI writing help** (server only for now): `POST /api/ai` rewrites text with the Claude API. The editor buttons are switched off until the AI output is converted to the rich text format.
 - **Autosave**, a dashboard (create, duplicate, rename, delete), and a mobile layout with an edit/preview toggle.
 - **Demo mode**: with `VITE_DEMO_MODE=true` the app runs fully in the browser, with data saved in `localStorage`.
 
