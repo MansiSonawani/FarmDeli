@@ -34,11 +34,12 @@ const remote = {
   },
 }
 
-const LOCAL_KEY = 'cv-builder:resumes'
+const LOCAL_KEY = 'resumebanao:resumes'
+const LEGACY_LOCAL_KEY = 'cv-builder:resumes' // key used before the rename
 
 function readLocal() {
   try {
-    return JSON.parse(localStorage.getItem(LOCAL_KEY)) ?? []
+    return JSON.parse(localStorage.getItem(LOCAL_KEY) ?? localStorage.getItem(LEGACY_LOCAL_KEY)) ?? []
   } catch {
     return []
   }

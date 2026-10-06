@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const SUFFIX = 'CV Builder'
+const SUFFIX = 'resumebanao'
 
 export function useDocumentTitle(title) {
   useEffect(() => {

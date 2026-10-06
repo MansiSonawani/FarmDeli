@@ -58,7 +58,7 @@ export default function Login() {
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
       <div className="flex flex-col px-6 py-6 sm:px-10">
-        <Link to="/" className="self-start" aria-label="CV Builder home">
+        <Link to="/" className="self-start" aria-label="resumebanao home">
           <Logo />
         </Link>
         <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-12">
@@ -139,7 +139,7 @@ export default function Login() {
             )}
           </AnimatePresence>
         </main>
-        <p className="eyebrow">© {new Date().getFullYear()} CV Builder</p>
+        <p className="eyebrow">© {new Date().getFullYear()} resumebanao</p>
       </div>
 
       <aside

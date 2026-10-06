@@ -39,7 +39,7 @@ export default function Cta({ ctaHref }) {
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <Logo inverted />
         <p className="eyebrow text-paper/50">
-          © {new Date().getFullYear()} CV Builder — Made for people who care about details
+          © {new Date().getFullYear()} resumebanao — Made for people who care about details
         </p>
         <button
           type="button"

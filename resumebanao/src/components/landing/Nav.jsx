@@ -33,7 +33,7 @@ export default function Nav({ signedIn }) {
           scrolled && 'bg-paper/75 shadow-[0_1px_0_0_var(--color-line)] backdrop-blur-xl',
         )}
       >
-        <Link to="/" aria-label="CV Builder home">
+        <Link to="/" aria-label="resumebanao home">
           <Logo />
         </Link>
         <div className="flex items-center gap-1 sm:gap-2">

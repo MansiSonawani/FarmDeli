@@ -1,4 +1,4 @@
-# CV Builder (MVP)
+# resumebanao (MVP)
 
 A resume builder in the style of FlowCV, built with **React + Vite + Tailwind CSS** and **Supabase**.
 
@@ -25,7 +25,7 @@ A resume builder in the style of FlowCV, built with **React + Vite + Tailwind CS
 ## Quick start
 
 ```bash
-cd cv-builder
+cd resumebanao
 npm install
 npm run dev          # http://localhost:5173 – runs in demo mode until .env is set
 npm test             # unit tests (pagination + formatting)

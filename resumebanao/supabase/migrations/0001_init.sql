@@ -1,4 +1,4 @@
--- CV Builder schema. Run this once in Supabase → SQL Editor (or `supabase db push`).
+-- resumebanao schema. Run this once in Supabase → SQL Editor (or `supabase db push`).
 
 create table if not exists public.resumes (
   id          uuid primary key default gen_random_uuid(),

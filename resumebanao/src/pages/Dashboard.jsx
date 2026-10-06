@@ -69,7 +69,7 @@ export default function Dashboard() {
     <div className="min-h-dvh bg-paper">
       <header className="px-5 pt-5 sm:px-8">
         <div className="mx-auto flex h-12 max-w-7xl items-center justify-between">
-          <Link to="/" aria-label="CV Builder home">
+          <Link to="/" aria-label="resumebanao home">
             <Logo />
           </Link>
           <div className="flex items-center gap-3">
