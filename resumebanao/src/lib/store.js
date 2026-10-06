@@ -15,7 +15,13 @@ function unwrap({ data, error }) {
 
 const remote = {
   async list() {
-    return unwrap(await supabase.from('resumes').select(COLUMNS).order('updated_at', { ascending: false }))
+    // RLS also lets signed-in users read other people's public resumes, so filter to the owner.
+    const { data } = await supabase.auth.getSession()
+    const userId = data.session?.user.id
+    if (!userId) return []
+    return unwrap(
+      await supabase.from('resumes').select(COLUMNS).eq('user_id', userId).order('updated_at', { ascending: false }),
+    )
   },
   async get(id) {
     return unwrap(await supabase.from('resumes').select(COLUMNS).eq('id', id).single())
