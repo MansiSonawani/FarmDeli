@@ -1,12 +1,16 @@
-export default function Logo({ className = '' }) {
+export default function Logo({ className = '', inverted = false }) {
+  const ink = inverted ? '#f5f3ef' : '#121211'
+  const paper = inverted ? '#121211' : '#f5f3ef'
   return (
-    <span className={`inline-flex items-center gap-2 font-bold text-slate-900 ${className}`}>
+    <span className={`inline-flex items-center gap-2 ${className}`}>
       <svg viewBox="0 0 32 32" className="size-7" aria-hidden="true">
-        <rect width="32" height="32" rx="8" fill="#4f46e5" />
-        <path d="M10 9h9l4 4v10a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1V10a1 1 0 0 1 1-1z" fill="#fff" />
-        <path d="M12 16h8M12 19h8M12 13h4" stroke="#4f46e5" strokeWidth="1.6" strokeLinecap="round" />
+        <rect width="32" height="32" rx="9" fill={ink} />
+        <path d="M11 9.5h7.5l3.5 3.5v9.5H11z" fill={paper} />
+        <circle cx="21.5" cy="21.5" r="3.5" fill="#ff5a1f" />
       </svg>
-      <span className="text-lg tracking-tight">CV Builder</span>
+      <span className={`text-[17px] font-medium tracking-tight ${inverted ? 'text-paper' : 'text-ink'}`}>
+        CV <span className="font-serif text-[19px] italic">Builder</span>
+      </span>
     </span>
   )
 }

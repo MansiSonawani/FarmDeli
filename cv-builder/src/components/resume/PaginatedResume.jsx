@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { buildBlocks, cssVars } from './blocks'
+import { buildBlocks } from './blocks'
+import { cssVars } from '../../lib/geometry'
 import { MM_TO_PX, packColumns } from '../../lib/paginate'
 import './resume.css'
 
@@ -16,7 +17,16 @@ import './resume.css'
 //   printable  – also render an unscaled copy for window.print()
 //   links      – render contact details / entry links as clickable links
 //   onPages    – called with the page count after each layout
-export default function PaginatedResume({ data, style, zoom = 1, maxPages, printable = false, links = true, onPages, pageGap = 24 }) {
+export default function PaginatedResume({
+  data,
+  style,
+  zoom = 1,
+  maxPages,
+  printable = false,
+  links = true,
+  onPages,
+  pageGap = 24,
+}) {
   const model = useMemo(() => buildBlocks(data, style, { links }), [data, style, links])
   const { geometry, header, columns } = model
   const measureRef = useRef(null)
@@ -81,7 +91,12 @@ export default function PaginatedResume({ data, style, zoom = 1, maxPages, print
   return (
     <>
       {createPortal(
-        <div ref={measureRef} className="cv-root cv-measure" style={{ ...vars, width: `${geometry.width}mm` }} aria-hidden="true">
+        <div
+          ref={measureRef}
+          className="cv-root cv-measure"
+          style={{ ...vars, width: `${geometry.width}mm` }}
+          aria-hidden="true"
+        >
           {header && (
             <div data-measure="header" className="cv-block" style={{ width: `${geometry.inner}mm` }}>
               {header}
@@ -95,7 +110,12 @@ export default function PaginatedResume({ data, style, zoom = 1, maxPages, print
               style={{ width: `${col.width}mm` }}
             >
               {columns[col.name].map((block) => (
-                <div key={block.key} data-key={block.key} className="cv-block" style={{ paddingBottom: `${block.gap}mm` }}>
+                <div
+                  key={block.key}
+                  data-key={block.key}
+                  className="cv-block"
+                  style={{ paddingBottom: `${block.gap}mm` }}
+                >
                   {block.node}
                 </div>
               ))}
@@ -129,7 +149,12 @@ function Page({ index, page, geometry, style, header, nodes }) {
     <div
       className="cv-page"
       data-page={index + 1}
-      style={{ width: `${geometry.width}mm`, height: `${geometry.height}mm`, flex: 'none', boxShadow: 'var(--cv-page-shadow, none)' }}
+      style={{
+        width: `${geometry.width}mm`,
+        height: `${geometry.height}mm`,
+        flex: 'none',
+        boxShadow: 'var(--cv-page-shadow, none)',
+      }}
     >
       {sidebarFilled && (
         <div

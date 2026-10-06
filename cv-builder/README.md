@@ -35,14 +35,14 @@ npm run build        # production build in dist/
 ## Connect Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. **Database**: open *SQL Editor* and run [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql). It creates the `resumes` table, the row-level-security policies and the `updated_at` trigger.
-3. **Keys**: copy `.env.example` to `.env` and fill in the values from *Project Settings → API*:
+2. **Database**: open _SQL Editor_ and run [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql). It creates the `resumes` table, the row-level-security policies and the `updated_at` trigger.
+3. **Keys**: copy `.env.example` to `.env` and fill in the values from _Project Settings → API_:
    ```
    VITE_SUPABASE_URL=https://<project-ref>.supabase.co
    VITE_SUPABASE_ANON_KEY=<anon / publishable key>
    ```
    Only use the **anon/publishable** key. Never put the `service_role` key in the frontend.
-4. **Auth URLs**: in *Authentication → URL Configuration*, set the Site URL to your app's URL (for example `http://localhost:5173`) and add `<your-url>/app` to the redirect URLs. Email confirmation is on by default; turn it off under *Authentication → Providers → Email* if you want people to sign up instantly.
+4. **Auth URLs**: in _Authentication → URL Configuration_, set the Site URL to your app's URL (for example `http://localhost:5173`) and add `<your-url>/app` to the redirect URLs. Email confirmation is on by default; turn it off under _Authentication → Providers → Email_ if you want people to sign up instantly.
 5. Restart `npm run dev`.
 
 ### AI writing help (optional)
@@ -65,16 +65,16 @@ Any static host works. `vercel.json` and `public/_redirects` (for Netlify) alrea
 
 ## How it works
 
-| Piece | Where |
-| --- | --- |
-| Resume data model, section types, sample content | `src/lib/defaults.js` |
-| Templates (style presets), fonts, colors | `src/lib/templates.js` |
-| Data → blocks per column | `src/components/resume/blocks.jsx` |
-| Measure blocks → pack into pages → render | `src/components/resume/PaginatedResume.jsx`, `src/lib/paginate.js` |
-| Resume CSS (shared by preview and print) | `src/components/resume/resume.css` |
-| Supabase / localStorage data access | `src/lib/store.js` |
-| Editor UI | `src/pages/Editor.jsx`, `src/components/editor/*` |
-| AI edge function | `supabase/functions/ai-assist/index.ts` |
+| Piece                                            | Where                                                              |
+| ------------------------------------------------ | ------------------------------------------------------------------ |
+| Resume data model, section types, sample content | `src/lib/defaults.js`                                              |
+| Templates (style presets), fonts, colors         | `src/lib/templates.js`                                             |
+| Data → blocks per column                         | `src/components/resume/blocks.jsx`                                 |
+| Measure blocks → pack into pages → render        | `src/components/resume/PaginatedResume.jsx`, `src/lib/paginate.js` |
+| Resume CSS (shared by preview and print)         | `src/components/resume/resume.css`                                 |
+| Supabase / localStorage data access              | `src/lib/store.js`                                                 |
+| Editor UI                                        | `src/pages/Editor.jsx`, `src/components/editor/*`                  |
+| AI edge function                                 | `supabase/functions/ai-assist/index.ts`                            |
 
 A resume is stored as one row: `data` (content JSON) and `style` (settings JSON). Profile photos are resized in the browser and stored inside `data` as a small JPEG, so no storage bucket is needed.
 

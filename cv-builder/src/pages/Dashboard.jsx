@@ -1,36 +1,46 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Copy, FileText, Globe, LogOut, MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react'
+import { motion } from 'motion/react'
+import { ArrowUpRight, Copy, Globe, LogOut, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
+import Logo from '../components/Logo'
+import MaskedLines from '../components/motion/MaskedLines'
+import PageTransition from '../components/motion/PageTransition'
 import ResumeThumbnail from '../components/resume/ResumeThumbnail'
-import { Button, Modal, Spinner, TextInput, cx, useToast } from '../components/ui'
-import { useAuth } from '../context/AuthContext'
+import { Button, Eyebrow, Modal, Spinner, TextInput } from '../components/ui'
+import { useAuth } from '../hooks/useAuth'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useToast } from '../hooks/useToast'
+import { cx } from '../lib/cx'
 import { DEFAULT_STYLE, emptyResume, sampleResume } from '../lib/defaults'
 import { timeAgo } from '../lib/format'
+import { EASE_OUT } from '../lib/motion'
 import { createResume, deleteResume, duplicateResume, listResumes, updateResume } from '../lib/store'
 import { isLocalMode } from '../lib/supabase'
 import { templateStyle } from '../lib/templates'
-import Logo from '../components/Logo'
 
 export default function Dashboard() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const notify = useToast()
   const [resumes, setResumes] = useState(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [renaming, setRenaming] = useState(null)
-  const [toastNode, notify] = useToast()
+  useDocumentTitle('My resumes')
 
-  const load = () =>
-    listResumes()
-      .then(setResumes)
-      .catch((e) => {
-        setResumes([])
-        notify(e.message, 'error')
-      })
+  const load = useCallback(
+    () =>
+      listResumes()
+        .then(setResumes)
+        .catch((e) => {
+          setResumes([])
+          notify(e.message, 'error')
+        }),
+    [notify],
+  )
 
   useEffect(() => {
-    document.title = 'My resumes – CV Builder'
     load()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [load])
 
   const run = async (fn, success) => {
     try {
@@ -42,15 +52,28 @@ export default function Dashboard() {
     }
   }
 
+  const create = async ({ title, example }) => {
+    try {
+      const row = await createResume({
+        title,
+        data: example ? sampleResume() : emptyResume(isLocalMode ? '' : user?.email),
+        style: templateStyle(example ? 'modern' : 'classic'),
+      })
+      navigate(`/app/resume/${row.id}`)
+    } catch (e) {
+      notify(e.message, 'error')
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-          <Link to="/">
+    <div className="min-h-dvh bg-paper">
+      <header className="px-5 pt-5 sm:px-8">
+        <div className="mx-auto flex h-12 max-w-7xl items-center justify-between">
+          <Link to="/" aria-label="CV Builder home">
             <Logo />
           </Link>
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-slate-500 sm:inline">{isLocalMode ? 'Demo mode' : user?.email}</span>
+            <span className="eyebrow hidden sm:inline">{isLocalMode ? 'Demo mode' : user?.email}</span>
             {!isLocalMode && (
               <Button variant="ghost" size="sm" onClick={signOut}>
                 <LogOut className="size-4" /> Sign out
@@ -61,70 +84,92 @@ export default function Dashboard() {
       </header>
 
       {isLocalMode && (
-        <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm text-amber-800">
-          Demo mode: resumes are saved in this browser only. Add your Supabase keys to <code className="rounded bg-amber-100 px-1">.env</code> to enable accounts and cloud sync.
+        <div className="mx-auto mt-4 max-w-7xl px-5 sm:px-8">
+          <p className="rounded-2xl border border-line bg-white/60 px-4 py-3 text-sm text-ink-2">
+            <span className="mr-2 inline-block size-1.5 -translate-y-0.5 rounded-full bg-accent" aria-hidden="true" />
+            Demo mode — resumes are saved in this browser. Add your Supabase keys to{' '}
+            <code className="font-mono text-xs">.env</code> for accounts and cloud sync.
+          </p>
         </div>
       )}
 
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">My resumes</h1>
-            <p className="text-sm text-slate-500">Create, edit and download your resumes.</p>
-          </div>
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="size-4" /> New resume
-          </Button>
-        </div>
-
-        {!resumes ? (
-          <div className="flex justify-center py-20">
-            <Spinner />
-          </div>
-        ) : resumes.length === 0 ? (
-          <EmptyState onCreate={() => setCreateOpen(true)} />
-        ) : (
-          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-            {resumes.map((resume) => (
-              <ResumeCard
-                key={resume.id}
-                resume={resume}
-                onRename={() => setRenaming(resume)}
-                onDuplicate={() => run(() => duplicateResume(resume), 'Resume duplicated')}
-                onDelete={() => {
-                  if (confirm(`Delete "${resume.title}"? This cannot be undone.`)) run(() => deleteResume(resume.id), 'Resume deleted')
-                }}
+      <PageTransition>
+        <main className="mx-auto max-w-7xl px-5 pt-14 pb-24 sm:px-8 sm:pt-20">
+          <div className="flex flex-col gap-8 border-b border-line pb-10 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <Eyebrow index={resumes ? String(resumes.length).padStart(2, '0') : '··'}>Dashboard</Eyebrow>
+              <MaskedLines
+                as="h1"
+                trigger="mount"
+                className="mt-4 text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.92] font-medium tracking-[-0.05em]"
+                lines={[
+                  <>
+                    Your <span className="font-serif font-normal italic">resumes</span>
+                  </>,
+                ]}
               />
-            ))}
-            <button
-              type="button"
-              onClick={() => setCreateOpen(true)}
-              className="flex aspect-[210/297] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 transition hover:border-indigo-400 hover:text-indigo-600"
-            >
-              <Plus className="size-6" />
-              <span className="text-sm font-medium">New resume</span>
-            </button>
+            </div>
+            <Button size="lg" onClick={() => setCreateOpen(true)} className="group self-start sm:self-auto">
+              <Plus className="size-4 transition-transform duration-500 group-hover:rotate-90" /> New resume
+            </Button>
           </div>
-        )}
-      </main>
 
-      <CreateDialog
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onCreate={async ({ title, example }) => {
-          try {
-            const row = await createResume({
-              title,
-              data: example ? sampleResume() : emptyResume(isLocalMode ? '' : user?.email),
-              style: templateStyle(example ? 'modern' : 'classic'),
-            })
-            navigate(`/app/resume/${row.id}`)
-          } catch (e) {
-            notify(e.message, 'error')
-          }
-        }}
-      />
+          {!resumes ? (
+            <div className="flex justify-center py-24">
+              <Spinner />
+            </div>
+          ) : resumes.length === 0 ? (
+            <EmptyState onCreate={() => setCreateOpen(true)} />
+          ) : (
+            <motion.ul
+              className="mt-12 grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-4"
+              initial="hidden"
+              animate="show"
+              variants={{ show: { transition: { staggerChildren: 0.06 } } }}
+            >
+              {resumes.map((resume, i) => (
+                <motion.li
+                  key={resume.id}
+                  variants={{
+                    hidden: { opacity: 0, y: 30 },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE_OUT } },
+                  }}
+                >
+                  <ResumeCard
+                    index={i}
+                    resume={resume}
+                    onRename={() => setRenaming(resume)}
+                    onDuplicate={() => run(() => duplicateResume(resume), 'Resume duplicated')}
+                    onDelete={() => {
+                      if (confirm(`Delete "${resume.title}"? This cannot be undone.`))
+                        run(() => deleteResume(resume.id), 'Resume deleted')
+                    }}
+                  />
+                </motion.li>
+              ))}
+              <motion.li
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE_OUT } },
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setCreateOpen(true)}
+                  className="group flex aspect-[210/297] w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-line-strong text-muted transition-colors duration-500 hover:border-ink hover:text-ink"
+                >
+                  <span className="flex size-12 items-center justify-center rounded-full border border-current transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:rotate-90">
+                    <Plus className="size-5" />
+                  </span>
+                  <span className="text-sm font-medium">New resume</span>
+                </button>
+              </motion.li>
+            </motion.ul>
+          )}
+        </main>
+      </PageTransition>
 
+      <CreateDialog open={createOpen} onClose={() => setCreateOpen(false)} onCreate={create} />
       <RenameDialog
         resume={renaming}
         onClose={() => setRenaming(null)}
@@ -134,27 +179,25 @@ export default function Dashboard() {
           run(() => updateResume(target.id, { title }))
         }}
       />
-      {toastNode}
     </div>
   )
 }
 
 function EmptyState({ onCreate }) {
   return (
-    <div className="flex flex-col items-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
-      <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
-        <FileText className="size-7" />
-      </div>
-      <h2 className="text-lg font-semibold text-slate-900">No resumes yet</h2>
-      <p className="mt-1 max-w-sm text-sm text-slate-500">Start from scratch or from example content, then make it yours.</p>
-      <Button className="mt-6" onClick={onCreate}>
-        <Plus className="size-4" /> Create your first resume
+    <div className="flex flex-col items-start py-20">
+      <p className="max-w-md font-serif text-4xl leading-tight text-ink italic">
+        Nothing here yet — every great story starts with a blank page.
+      </p>
+      <Button size="lg" className="group mt-8" onClick={onCreate}>
+        Create your first resume
+        <ArrowUpRight className="size-4 transition-transform duration-500 group-hover:rotate-45" />
       </Button>
     </div>
   )
 }
 
-function ResumeCard({ resume, onRename, onDuplicate, onDelete }) {
+function ResumeCard({ index, resume, onRename, onDuplicate, onDelete }) {
   const [menu, setMenu] = useState(false)
   const style = { ...DEFAULT_STYLE, ...resume.style }
 
@@ -167,16 +210,23 @@ function ResumeCard({ resume, onRename, onDuplicate, onDelete }) {
 
   return (
     <div className="group relative">
-      <Link to={`/app/resume/${resume.id}`} className="block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
+      <Link
+        to={`/app/resume/${resume.id}`}
+        className="block overflow-hidden rounded-lg shadow-[0_1px_2px_rgb(18_18_17/0.06),0_20px_40px_-24px_rgb(18_18_17/0.3)] ring-1 ring-ink/5 transition-[transform,box-shadow] duration-700 ease-[var(--ease-out-expo)] group-hover:-translate-y-1.5 group-hover:-rotate-1 group-hover:shadow-[0_2px_4px_rgb(18_18_17/0.06),0_36px_60px_-24px_rgb(18_18_17/0.4)]"
+        aria-label={`Open ${resume.title}`}
+      >
         <ResumeThumbnail data={resume.data} style={style} />
       </Link>
-      <div className="mt-2 flex items-start justify-between gap-2">
+      <div className="mt-4 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-slate-800">{resume.title}</div>
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            Edited {timeAgo(resume.updated_at)}
+          <div className="flex items-baseline gap-2">
+            <span className="font-mono text-[11px] text-accent">{String(index + 1).padStart(2, '0')}</span>
+            <span className="truncate font-medium text-ink">{resume.title}</span>
+          </div>
+          <div className="mt-0.5 flex items-center gap-2 pl-6 text-xs text-muted">
+            {timeAgo(resume.updated_at)}
             {resume.is_public && (
-              <span className="inline-flex items-center gap-0.5 text-emerald-600">
+              <span className="inline-flex items-center gap-1 text-ink">
                 <Globe className="size-3" /> Public
               </span>
             )}
@@ -185,17 +235,23 @@ function ResumeCard({ resume, onRename, onDuplicate, onDelete }) {
         <div className="relative">
           <button
             type="button"
-            aria-label="Resume actions"
+            aria-label={`Actions for ${resume.title}`}
+            aria-expanded={menu}
             onClick={(e) => {
               e.stopPropagation()
               setMenu((m) => !m)
             }}
-            className="rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+            className="rounded-full p-1.5 text-muted transition-colors hover:bg-paper-2 hover:text-ink"
           >
-            <MoreVertical className="size-4" />
+            <MoreHorizontal className="size-4" />
           </button>
           {menu && (
-            <div className="absolute right-0 z-10 mt-1 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+            <motion.div
+              initial={{ opacity: 0, y: -4, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.25, ease: EASE_OUT }}
+              className="absolute right-0 z-10 mt-1 w-44 origin-top-right overflow-hidden rounded-2xl border border-line bg-white p-1 shadow-xl shadow-ink/10"
+            >
               <MenuItem icon={Pencil} onClick={onRename}>
                 Rename
               </MenuItem>
@@ -205,7 +261,7 @@ function ResumeCard({ resume, onRename, onDuplicate, onDelete }) {
               <MenuItem icon={Trash2} onClick={onDelete} danger>
                 Delete
               </MenuItem>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
@@ -218,7 +274,10 @@ function MenuItem({ icon: Icon, onClick, danger, children }) {
     <button
       type="button"
       onClick={onClick}
-      className={cx('flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50', danger ? 'text-red-600' : 'text-slate-700')}
+      className={cx(
+        'flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm hover:bg-paper',
+        danger ? 'text-red-600' : 'text-ink',
+      )}
     >
       <Icon className="size-4" />
       {children}
@@ -227,17 +286,18 @@ function MenuItem({ icon: Icon, onClick, danger, children }) {
 }
 
 function CreateDialog({ open, onClose, onCreate }) {
+  return (
+    <Modal open={open} onClose={onClose} title="New resume">
+      {/* Mounted fresh on every open, so the form always starts empty. */}
+      {open && <CreateForm onClose={onClose} onCreate={onCreate} />}
+    </Modal>
+  )
+}
+
+function CreateForm({ onClose, onCreate }) {
   const [title, setTitle] = useState('')
   const [example, setExample] = useState(false)
   const [busy, setBusy] = useState(false)
-
-  useEffect(() => {
-    if (open) {
-      setTitle('')
-      setExample(false)
-      setBusy(false)
-    }
-  }, [open])
 
   const submit = async (e) => {
     e.preventDefault()
@@ -247,61 +307,72 @@ function CreateDialog({ open, onClose, onCreate }) {
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="New resume">
-      <form onSubmit={submit} className="space-y-4">
-        <TextInput label="Name" placeholder="e.g. Product Designer – 2026" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            [false, 'Start blank', 'Empty sections ready to fill in'],
-            [true, 'Use an example', 'Pre-filled content to edit'],
-          ].map(([value, name, text]) => (
-            <button
-              key={name}
-              type="button"
-              onClick={() => setExample(value)}
-              className={cx('rounded-xl border-2 p-3 text-left transition', example === value ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-200 hover:border-slate-300')}
-            >
-              <div className="text-sm font-semibold text-slate-800">{name}</div>
-              <div className="mt-0.5 text-xs text-slate-500">{text}</div>
-            </button>
-          ))}
-        </div>
-        <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" loading={busy}>
-            Create resume
-          </Button>
-        </div>
-      </form>
-    </Modal>
+    <form onSubmit={submit} className="space-y-5">
+      <TextInput
+        label="Name"
+        placeholder="e.g. Product Designer 2026"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        autoFocus
+      />
+      <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Starting point">
+        {[
+          [false, 'Start blank', 'Empty sections, ready to fill'],
+          [true, 'Use an example', 'Pre-filled content to edit'],
+        ].map(([value, name, text]) => (
+          <button
+            key={name}
+            type="button"
+            role="radio"
+            aria-checked={example === value}
+            onClick={() => setExample(value)}
+            className={cx(
+              'rounded-2xl border p-4 text-left transition-colors duration-300',
+              example === value ? 'border-ink bg-white' : 'border-line hover:border-line-strong',
+            )}
+          >
+            <div className="text-sm font-medium text-ink">{name}</div>
+            <div className="mt-1 text-xs text-muted">{text}</div>
+          </button>
+        ))}
+      </div>
+      <div className="flex justify-end gap-2 pt-1">
+        <Button type="button" variant="secondary" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" loading={busy}>
+          Create resume
+        </Button>
+      </div>
+    </form>
   )
 }
 
 function RenameDialog({ resume, onClose, onSave }) {
-  const [title, setTitle] = useState('')
-  useEffect(() => {
-    if (resume) setTitle(resume.title)
-  }, [resume])
-
   return (
     <Modal open={Boolean(resume)} onClose={onClose} title="Rename resume">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          onSave(title.trim() || 'Untitled resume')
-        }}
-        className="space-y-4"
-      >
-        <TextInput label="Name" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit">Save</Button>
-        </div>
-      </form>
+      {resume && <RenameForm key={resume.id} initial={resume.title} onClose={onClose} onSave={onSave} />}
     </Modal>
+  )
+}
+
+function RenameForm({ initial, onClose, onSave }) {
+  const [title, setTitle] = useState(initial)
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        onSave(title.trim() || 'Untitled resume')
+      }}
+      className="space-y-5"
+    >
+      <TextInput label="Name" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="secondary" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit">Save</Button>
+      </div>
+    </form>
   )
 }

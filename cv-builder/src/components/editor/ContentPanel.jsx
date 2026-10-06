@@ -17,7 +17,9 @@ import AiButton from './AiButton'
 import { SECTION_TYPES, newEntry, newSection, newTag } from '../../lib/defaults'
 import { formatRange } from '../../lib/format'
 import { fileToResizedDataUrl } from '../../lib/image'
-import { IconButton, TextArea, TextInput, Toggle, cx } from '../ui'
+import { IconButton, TextArea, TextInput, Toggle } from '../ui'
+import Collapse from './Collapse'
+import { cx } from '../../lib/cx'
 
 export default function ContentPanel({ data, style, updateData, notify }) {
   const [openId, setOpenId] = useState('personal')
@@ -46,7 +48,7 @@ export default function ContentPanel({ data, style, updateData, notify }) {
       <Card
         open={openId === 'personal'}
         onToggle={() => toggle('personal')}
-        icon={<User className="size-4 text-slate-400" />}
+        icon={<User className="size-4 text-muted" />}
         title="Personal details"
         subtitle={data.personal.fullName || 'Name, contact details, photo'}
       >
@@ -78,10 +80,15 @@ export default function ContentPanel({ data, style, updateData, notify }) {
 
 function Card({ open, onToggle, icon, title, subtitle, actions, handle, children, muted }) {
   return (
-    <div className={cx('rounded-xl border border-slate-200 bg-white shadow-xs', muted && 'opacity-60')}>
+    <div className={cx('rounded-2xl border border-line bg-white shadow-none', muted && 'opacity-60')}>
       <div className="flex items-center gap-1 px-2 py-2">
         {handle ? (
-          <button type="button" aria-label="Drag to reorder" className="cursor-grab touch-none rounded p-1.5 text-slate-300 hover:text-slate-500 active:cursor-grabbing" {...handle}>
+          <button
+            type="button"
+            aria-label="Drag to reorder"
+            className="cursor-grab touch-none rounded p-1.5 text-line-strong hover:text-muted active:cursor-grabbing"
+            {...handle}
+          >
             <GripVertical className="size-4" />
           </button>
         ) : (
@@ -89,14 +96,16 @@ function Card({ open, onToggle, icon, title, subtitle, actions, handle, children
         )}
         <button type="button" onClick={onToggle} className="flex min-w-0 flex-1 items-center gap-2 py-1 text-left">
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold text-slate-800">{title}</div>
-            {subtitle && <div className="truncate text-xs text-slate-400">{subtitle}</div>}
+            <div className="truncate text-sm font-semibold text-ink">{title}</div>
+            {subtitle && <div className="truncate text-xs text-muted">{subtitle}</div>}
           </div>
-          <ChevronDown className={cx('size-4 flex-none text-slate-400 transition-transform', open && 'rotate-180')} />
+          <ChevronDown className={cx('size-4 flex-none text-muted transition-transform', open && 'rotate-180')} />
         </button>
         {actions}
       </div>
-      {open && <div className="border-t border-slate-100 p-4">{children}</div>}
+      <Collapse open={open}>
+        <div className="border-t border-line p-4">{children}</div>
+      </Collapse>
     </div>
   )
 }
@@ -127,16 +136,20 @@ function PersonalForm({ data, updateData, notify }) {
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="flex size-16 flex-none items-center justify-center overflow-hidden rounded-full border border-dashed border-slate-300 bg-slate-50 text-slate-400 hover:border-indigo-400 hover:text-indigo-500"
+          className="flex size-16 flex-none items-center justify-center overflow-hidden rounded-full border border-dashed border-line-strong bg-paper text-muted hover:border-ink/40 hover:text-ink"
           aria-label="Upload photo"
         >
           {p.photo ? <img src={p.photo} alt="" className="size-full object-cover" /> : <ImagePlus className="size-5" />}
         </button>
-        <div className="text-xs text-slate-500">
-          <div className="font-medium text-slate-700">Photo</div>
+        <div className="text-xs text-muted">
+          <div className="font-medium text-ink-2">Photo</div>
           <div>Optional. JPG or PNG, cropped to a square.</div>
           {p.photo && (
-            <button type="button" className="mt-1 text-red-600 hover:underline" onClick={() => updateData((d) => void (d.personal.photo = ''))}>
+            <button
+              type="button"
+              className="mt-1 text-red-600 hover:underline"
+              onClick={() => updateData((d) => void (d.personal.photo = ''))}
+            >
               Remove photo
             </button>
           )}
@@ -150,7 +163,13 @@ function PersonalForm({ data, updateData, notify }) {
         <TextInput label="Phone" value={p.phone} onChange={set('phone')} />
         <TextInput label="Location" value={p.location} onChange={set('location')} placeholder="City, Country" />
         <TextInput label="Website" value={p.website} onChange={set('website')} placeholder="yourname.com" />
-        <TextInput label="LinkedIn" className="sm:col-span-2" value={p.linkedin} onChange={set('linkedin')} placeholder="linkedin.com/in/yourname" />
+        <TextInput
+          label="LinkedIn"
+          className="sm:col-span-2"
+          value={p.linkedin}
+          onChange={set('linkedin')}
+          placeholder="linkedin.com/in/yourname"
+        />
       </div>
     </div>
   )
@@ -159,7 +178,8 @@ function PersonalForm({ data, updateData, notify }) {
 function SectionCard({ section, data, twoCol, open, onToggle, handle, update, remove, notify }) {
   const def = SECTION_TYPES[section.type]
   const count = section.items?.length ?? 0
-  const subtitle = def.kind === 'text' ? (section.content ? 'Written' : 'Empty') : `${count} ${count === 1 ? 'item' : 'items'}`
+  const subtitle =
+    def.kind === 'text' ? (section.content ? 'Written' : 'Empty') : `${count} ${count === 1 ? 'item' : 'items'}`
 
   const actions = (
     <div className="flex flex-none items-center">
@@ -171,7 +191,10 @@ function SectionCard({ section, data, twoCol, open, onToggle, handle, update, re
           {section.column === 'side' ? <PanelRight className="size-4" /> : <PanelLeft className="size-4" />}
         </IconButton>
       )}
-      <IconButton label={section.visible ? 'Hide section' : 'Show section'} onClick={() => update((s) => void (s.visible = !s.visible))}>
+      <IconButton
+        label={section.visible ? 'Hide section' : 'Show section'}
+        onClick={() => update((s) => void (s.visible = !s.visible))}
+      >
         {section.visible ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
       </IconButton>
       <IconButton
@@ -187,9 +210,21 @@ function SectionCard({ section, data, twoCol, open, onToggle, handle, update, re
   )
 
   return (
-    <Card open={open} onToggle={onToggle} title={section.title} subtitle={subtitle} actions={actions} handle={handle} muted={!section.visible}>
+    <Card
+      open={open}
+      onToggle={onToggle}
+      title={section.title}
+      subtitle={subtitle}
+      actions={actions}
+      handle={handle}
+      muted={!section.visible}
+    >
       <div className="space-y-4">
-        <TextInput label="Section title" value={section.title} onChange={(e) => update((s) => void (s.title = e.target.value))} />
+        <TextInput
+          label="Section title"
+          value={section.title}
+          onChange={(e) => update((s) => void (s.title = e.target.value))}
+        />
         {def.kind === 'text' && <TextSection section={section} data={data} update={update} notify={notify} />}
         {def.kind === 'entries' && <EntriesSection section={section} def={def} update={update} notify={notify} />}
         {def.kind === 'tags' && <TagsSection section={section} def={def} update={update} />}
@@ -219,7 +254,12 @@ function TextSection({ section, data, update, notify }) {
           onResult={(text) => update((s) => void (s.content = text))}
           onError={(m) => notify(m, 'error')}
         />
-        <AiButton mode="improve" text={section.content} onResult={(text) => update((s) => void (s.content = text))} onError={(m) => notify(m, 'error')} />
+        <AiButton
+          mode="improve"
+          text={section.content}
+          onResult={(text) => update((s) => void (s.content = text))}
+          onError={(m) => notify(m, 'error')}
+        />
       </div>
     </div>
   )
@@ -260,7 +300,7 @@ function EntriesSection({ section, def, update, notify }) {
       <button
         type="button"
         onClick={add}
-        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 py-2 text-sm font-medium text-slate-500 hover:border-indigo-400 hover:text-indigo-600"
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-line-strong py-2 text-sm font-medium text-muted hover:border-ink/40 hover:text-ink"
       >
         <Plus className="size-4" /> Add {def.itemLabel}
       </button>
@@ -276,14 +316,21 @@ function EntryEditor({ entry, def, handle, open, onToggle, update, remove, notif
   const summary = [entry.subtitle, formatRange(entry)].filter(Boolean).join(' · ')
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50/60">
+    <div className="rounded-lg border border-line bg-paper/60">
       <div className="flex items-center gap-1 px-1.5 py-1.5">
-        <button type="button" aria-label="Drag to reorder" className="cursor-grab touch-none rounded p-1 text-slate-300 hover:text-slate-500" {...handle}>
+        <button
+          type="button"
+          aria-label="Drag to reorder"
+          className="cursor-grab touch-none rounded p-1 text-line-strong hover:text-muted"
+          {...handle}
+        >
           <GripVertical className="size-4" />
         </button>
         <button type="button" onClick={onToggle} className="min-w-0 flex-1 text-left">
-          <div className="truncate text-sm font-medium text-slate-800">{entry.title || <span className="text-slate-400">(Untitled)</span>}</div>
-          {summary && <div className="truncate text-xs text-slate-400">{summary}</div>}
+          <div className="truncate text-sm font-medium text-ink">
+            {entry.title || <span className="text-muted">(Untitled)</span>}
+          </div>
+          {summary && <div className="truncate text-xs text-muted">{summary}</div>}
         </button>
         <IconButton label="Delete" className="hover:text-red-600" onClick={remove}>
           <Trash2 className="size-4" />
@@ -292,25 +339,50 @@ function EntryEditor({ entry, def, handle, open, onToggle, update, remove, notif
           <ChevronDown className={cx('size-4 transition-transform', open && 'rotate-180')} />
         </IconButton>
       </div>
-      {open && (
-        <div className="space-y-3 border-t border-slate-200 bg-white p-3">
+      <Collapse open={open}>
+        <div className="space-y-3 border-t border-line bg-white p-3">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <TextInput label={def.fields.title} value={entry.title} onChange={set('title')} />
-            {def.fields.subtitle && <TextInput label={def.fields.subtitle} value={entry.subtitle} onChange={set('subtitle')} />}
-            {def.fields.location && <TextInput label={def.fields.location} value={entry.location} onChange={set('location')} />}
-            {def.fields.link && <TextInput label={def.fields.link} value={entry.link} onChange={set('link')} placeholder="example.com" />}
+            {def.fields.subtitle && (
+              <TextInput label={def.fields.subtitle} value={entry.subtitle} onChange={set('subtitle')} />
+            )}
+            {def.fields.location && (
+              <TextInput label={def.fields.location} value={entry.location} onChange={set('location')} />
+            )}
+            {def.fields.link && (
+              <TextInput label={def.fields.link} value={entry.link} onChange={set('link')} placeholder="example.com" />
+            )}
           </div>
           {def.dates && (
             <div className="space-y-2">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <DateInput label="Start date" value={entry.startDate} onChange={(v) => update((en) => void (en.startDate = v))} />
-                <DateInput label="End date" value={entry.endDate} disabled={entry.current} onChange={(v) => update((en) => void (en.endDate = v))} />
+                <DateInput
+                  label="Start date"
+                  value={entry.startDate}
+                  onChange={(v) => update((en) => void (en.startDate = v))}
+                />
+                <DateInput
+                  label="End date"
+                  value={entry.endDate}
+                  disabled={entry.current}
+                  onChange={(v) => update((en) => void (en.endDate = v))}
+                />
               </div>
-              <Toggle label="I currently work / study here" checked={entry.current} onChange={(v) => update((en) => void (en.current = v))} />
+              <Toggle
+                label="I currently work / study here"
+                checked={entry.current}
+                onChange={(v) => update((en) => void (en.current = v))}
+              />
             </div>
           )}
           <div>
-            <TextArea label="Description" rows={5} value={entry.description} onChange={set('description')} hint={FORMAT_HINT} />
+            <TextArea
+              label="Description"
+              rows={5}
+              value={entry.description}
+              onChange={set('description')}
+              hint={FORMAT_HINT}
+            />
             <div className="mt-1 flex justify-end">
               <AiButton
                 mode="improve"
@@ -322,7 +394,7 @@ function EntryEditor({ entry, def, handle, open, onToggle, update, remove, notif
             </div>
           </div>
         </div>
-      )}
+      </Collapse>
     </div>
   )
 }
@@ -339,19 +411,24 @@ function TagsSection({ section, def, update }) {
       <SortableList items={section.items} onReorder={(items) => update((s) => void (s.items = items))}>
         {(tag, handle) => (
           <div className="flex items-center gap-1.5 pb-2">
-            <button type="button" aria-label="Drag to reorder" className="cursor-grab touch-none rounded p-1 text-slate-300 hover:text-slate-500" {...handle}>
+            <button
+              type="button"
+              aria-label="Drag to reorder"
+              className="cursor-grab touch-none rounded p-1 text-line-strong hover:text-muted"
+              {...handle}
+            >
               <GripVertical className="size-4" />
             </button>
             <input
               aria-label={def.fields.name}
-              className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/15"
+              className="min-w-0 flex-1 rounded-lg border border-line px-2.5 py-1.5 text-sm outline-none focus:border-ink focus:ring-4 focus:ring-accent/15"
               placeholder={def.fields.name}
               value={tag.name}
               onChange={(e) => setItem(tag.id, (t) => void (t.name = e.target.value))}
             />
             <input
               aria-label={def.fields.info}
-              className="hidden w-32 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-3 focus:ring-indigo-500/15 sm:block"
+              className="hidden w-32 rounded-lg border border-line px-2.5 py-1.5 text-sm outline-none focus:border-ink focus:ring-4 focus:ring-accent/15 sm:block"
               placeholder="Details"
               value={tag.info}
               onChange={(e) => setItem(tag.id, (t) => void (t.info = e.target.value))}
@@ -359,7 +436,7 @@ function TagsSection({ section, def, update }) {
             {def.levels && (
               <select
                 aria-label="Level"
-                className="w-32 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-indigo-500"
+                className="w-32 rounded-lg border border-line bg-white px-2 py-1.5 text-sm outline-none focus:border-ink"
                 value={tag.level}
                 onChange={(e) => setItem(tag.id, (t) => void (t.level = Number(e.target.value)))}
               >
@@ -370,7 +447,11 @@ function TagsSection({ section, def, update }) {
                 ))}
               </select>
             )}
-            <IconButton label="Delete" className="hover:text-red-600" onClick={() => update((s) => void (s.items = s.items.filter((i) => i.id !== tag.id)))}>
+            <IconButton
+              label="Delete"
+              className="hover:text-red-600"
+              onClick={() => update((s) => void (s.items = s.items.filter((i) => i.id !== tag.id)))}
+            >
               <Trash2 className="size-4" />
             </IconButton>
           </div>
@@ -379,7 +460,7 @@ function TagsSection({ section, def, update }) {
       <button
         type="button"
         onClick={() => update((s) => void s.items.push(newTag()))}
-        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 py-2 text-sm font-medium text-slate-500 hover:border-indigo-400 hover:text-indigo-600"
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-line-strong py-2 text-sm font-medium text-muted hover:border-ink/40 hover:text-ink"
       >
         <Plus className="size-4" /> Add {def.itemLabel}
       </button>
@@ -394,17 +475,17 @@ function AddSectionMenu({ options, onAdd }) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-white py-3 text-sm font-semibold text-slate-600 hover:border-indigo-400 hover:text-indigo-600"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line-strong bg-white py-3 text-sm font-semibold text-ink-2 hover:border-ink/40 hover:text-ink"
       >
         <Plus className="size-4" /> Add section
       </button>
       {open && (
-        <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+        <div className="mt-2 grid grid-cols-2 gap-2 rounded-2xl border border-line bg-white p-2 shadow-sm">
           {options.map(([type, def]) => (
             <button
               key={type}
               type="button"
-              className="rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700"
+              className="rounded-lg px-3 py-2 text-left text-sm text-ink-2 hover:bg-paper-2 hover:text-ink"
               onClick={() => {
                 onAdd(type)
                 setOpen(false)

@@ -9,17 +9,11 @@ describe('packColumns', () => {
   })
 
   it('moves a block that does not fit to the next page', () => {
-    expect(packColumns({ main: blocks(400, 400, 400) }, 1000)).toEqual([
-      { main: ['b0', 'b1'] },
-      { main: ['b2'] },
-    ])
+    expect(packColumns({ main: blocks(400, 400, 400) }, 1000)).toEqual([{ main: ['b0', 'b1'] }, { main: ['b2'] }])
   })
 
   it('reserves the header height on the first page only', () => {
-    expect(packColumns({ main: blocks(400, 400, 400) }, 1000, 300)).toEqual([
-      { main: ['b0'] },
-      { main: ['b1', 'b2'] },
-    ])
+    expect(packColumns({ main: blocks(400, 400, 400) }, 1000, 300)).toEqual([{ main: ['b0'] }, { main: ['b1', 'b2'] }])
   })
 
   it('lets trailing spacing hang off the page end', () => {

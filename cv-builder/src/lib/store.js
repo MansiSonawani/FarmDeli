@@ -30,9 +30,7 @@ const remote = {
     unwrap(await supabase.from('resumes').delete().eq('id', id))
   },
   async getPublic(slug) {
-    return unwrap(
-      await supabase.from('resumes').select(COLUMNS).eq('slug', slug).eq('is_public', true).maybeSingle(),
-    )
+    return unwrap(await supabase.from('resumes').select(COLUMNS).eq('slug', slug).eq('is_public', true).maybeSingle())
   },
 }
 
@@ -106,6 +104,7 @@ export async function duplicateResume(resume) {
 }
 
 export async function setSharing(resume, isPublic) {
-  const slug = resume.slug ?? `${slugify(resume.data?.personal?.fullName || resume.title) || 'resume'}-${randomSuffix()}`
+  const slug =
+    resume.slug ?? `${slugify(resume.data?.personal?.fullName || resume.title) || 'resume'}-${randomSuffix()}`
   return backend.update(resume.id, { is_public: isPublic, slug })
 }

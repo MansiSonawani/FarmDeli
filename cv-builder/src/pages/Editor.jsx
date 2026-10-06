@@ -1,11 +1,28 @@
 import { useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Check, Copy, Download, ExternalLink, Eye, LoaderCircle, Palette, PenLine, Share2, TriangleAlert } from 'lucide-react'
+import { motion } from 'motion/react'
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Download,
+  ExternalLink,
+  Eye,
+  LoaderCircle,
+  Palette,
+  PenLine,
+  Share2,
+  TriangleAlert,
+} from 'lucide-react'
 import ContentPanel from '../components/editor/ContentPanel'
 import CustomizePanel from '../components/editor/CustomizePanel'
 import ResumePreview from '../components/resume/ResumePreview'
-import { Button, FullPageSpinner, Modal, Toggle, cx, useToast } from '../components/ui'
+import { Button, FullPageSpinner, Modal, Toggle } from '../components/ui'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useToast } from '../hooks/useToast'
+import { cx } from '../lib/cx'
 import { DEFAULT_STYLE } from '../lib/defaults'
+import { EASE_OUT } from '../lib/motion'
 import { getResume, setSharing, updateResume } from '../lib/store'
 import { isLocalMode } from '../lib/supabase'
 
@@ -13,6 +30,7 @@ const SAVE_DELAY = 800
 
 export default function Editor() {
   const { id } = useParams()
+  const notify = useToast()
   const [resume, setResume] = useState(null)
   const [error, setError] = useState(null)
   const [tab, setTab] = useState('content')
@@ -20,8 +38,8 @@ export default function Editor() {
   const [saveState, setSaveState] = useState('saved') // saved | pending | saving | error
   const [pageCount, setPageCount] = useState(1)
   const [shareOpen, setShareOpen] = useState(false)
-  const [toastNode, notify] = useToast()
   const dirty = useRef(false)
+  useDocumentTitle(resume?.title)
 
   useEffect(() => {
     getResume(id)
@@ -30,13 +48,16 @@ export default function Editor() {
   }, [id])
 
   // Debounced autosave of title, content and style.
+  const title = resume?.title
+  const data = resume?.data
+  const style = resume?.style
+  const resumeId = resume?.id
   useEffect(() => {
-    if (!resume || !dirty.current) return
-    setSaveState('pending')
+    if (!resumeId || !dirty.current) return
     const timer = setTimeout(async () => {
       setSaveState('saving')
       try {
-        await updateResume(resume.id, { title: resume.title, data: resume.data, style: resume.style })
+        await updateResume(resumeId, { title, data, style })
         dirty.current = false
         setSaveState('saved')
       } catch (e) {
@@ -45,8 +66,9 @@ export default function Editor() {
       }
     }, SAVE_DELAY)
     return () => clearTimeout(timer)
-  }, [resume?.title, resume?.data, resume?.style]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [resumeId, title, data, style, notify])
 
+  // Warn before leaving with unsaved changes.
   useEffect(() => {
     const warn = (e) => {
       if (dirty.current) e.preventDefault()
@@ -55,39 +77,46 @@ export default function Editor() {
     return () => window.removeEventListener('beforeunload', warn)
   }, [])
 
-  const updateData = useCallback((fn) => {
+  const markDirty = useCallback(() => {
     dirty.current = true
-    setResume((prev) => {
-      const data = structuredClone(prev.data)
-      fn(data)
-      return { ...prev, data }
-    })
+    setSaveState('pending')
   }, [])
 
-  const setStyle = useCallback((fn) => {
-    dirty.current = true
-    setResume((prev) => ({ ...prev, style: fn(prev.style) }))
-  }, [])
+  const updateData = useCallback(
+    (fn) => {
+      markDirty()
+      setResume((prev) => {
+        const next = structuredClone(prev.data)
+        fn(next)
+        return { ...prev, data: next }
+      })
+    },
+    [markDirty],
+  )
 
-  const setTitle = (title) => {
-    dirty.current = true
-    setResume((prev) => ({ ...prev, title }))
+  const setStyle = useCallback(
+    (fn) => {
+      markDirty()
+      setResume((prev) => ({ ...prev, style: fn(prev.style) }))
+    },
+    [markDirty],
+  )
+
+  const setTitle = (value) => {
+    markDirty()
+    setResume((prev) => ({ ...prev, title: value }))
   }
 
-  // Rendering the preview is the expensive part; let typing stay responsive.
-  const previewData = useDeferredValue(resume?.data)
-  const previewStyle = useDeferredValue(resume?.style)
-
-  useEffect(() => {
-    if (resume?.title) document.title = `${resume.title} – CV Builder`
-  }, [resume?.title])
+  // Rendering the preview is the expensive part; keep typing responsive.
+  const previewData = useDeferredValue(data)
+  const previewStyle = useDeferredValue(style)
 
   if (error) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center">
-        <TriangleAlert className="size-8 text-amber-500" />
-        <p className="text-slate-600">{error}</p>
-        <Link to="/app" className="text-sm font-medium text-indigo-600 hover:underline">
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">
+        <TriangleAlert className="size-8 text-accent" />
+        <p className="text-ink-2">{error}</p>
+        <Link to="/app" className="link-underline text-sm font-medium">
           Back to my resumes
         </Link>
       </div>
@@ -104,16 +133,20 @@ export default function Editor() {
   }
 
   return (
-    <div className="flex h-dvh flex-col bg-slate-100">
-      <header className="flex h-14 flex-none items-center gap-2 border-b border-slate-200 bg-white px-3 sm:px-4">
-        <Link to="/app" className="rounded-md p-2 text-slate-500 hover:bg-slate-100" aria-label="Back to dashboard">
+    <div className="flex h-dvh flex-col bg-paper">
+      <header className="flex h-16 flex-none items-center gap-2 border-b border-line px-3 sm:px-5">
+        <Link
+          to="/app"
+          className="rounded-full p-2 text-muted transition-colors hover:bg-paper-2 hover:text-ink"
+          aria-label="Back to dashboard"
+        >
           <ArrowLeft className="size-5" />
         </Link>
         <input
           value={resume.title}
           onChange={(e) => setTitle(e.target.value)}
           aria-label="Resume name"
-          className="min-w-0 flex-1 truncate rounded-md px-2 py-1 font-semibold text-slate-800 outline-none hover:bg-slate-50 focus:bg-slate-50 sm:max-w-xs"
+          className="min-w-0 flex-1 truncate rounded-full px-3 py-1.5 font-medium text-ink transition-colors outline-none hover:bg-paper-2 focus:bg-white focus:ring-1 focus:ring-line sm:max-w-xs"
         />
         <SaveIndicator state={saveState} />
         <div className="ml-auto flex items-center gap-2">
@@ -129,52 +162,92 @@ export default function Editor() {
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <aside className={cx('flex w-full min-w-0 flex-col border-r border-slate-200 bg-slate-50 lg:w-[460px] lg:flex-none xl:w-[520px]', mobileView === 'preview' && 'hidden lg:flex')}>
-          <div className="flex flex-none gap-1 border-b border-slate-200 bg-white p-2">
-            <TabButton active={tab === 'content'} onClick={() => setTab('content')} icon={<PenLine className="size-4" />}>
+        <aside
+          className={cx(
+            'flex w-full min-w-0 flex-col border-r border-line bg-paper lg:w-[460px] lg:flex-none xl:w-[520px]',
+            mobileView === 'preview' && 'hidden lg:flex',
+          )}
+        >
+          <div className="flex flex-none gap-6 border-b border-line px-5" role="tablist" aria-label="Editor panels">
+            <TabButton
+              active={tab === 'content'}
+              onClick={() => setTab('content')}
+              icon={<PenLine className="size-4" />}
+            >
               Content
             </TabButton>
-            <TabButton active={tab === 'customize'} onClick={() => setTab('customize')} icon={<Palette className="size-4" />}>
+            <TabButton
+              active={tab === 'customize'}
+              onClick={() => setTab('customize')}
+              icon={<Palette className="size-4" />}
+            >
               Customize
             </TabButton>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto p-3 pb-24 sm:p-4 lg:pb-4">
-            {tab === 'content' ? (
-              <ContentPanel data={resume.data} style={resume.style} updateData={updateData} notify={notify} />
-            ) : (
-              <CustomizePanel data={resume.data} style={resume.style} setStyle={setStyle} />
-            )}
+          <div className="min-h-0 flex-1 overflow-y-auto p-3 pb-28 sm:p-5 lg:pb-6" role="tabpanel">
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: EASE_OUT }}
+            >
+              {tab === 'content' ? (
+                <ContentPanel data={resume.data} style={resume.style} updateData={updateData} notify={notify} />
+              ) : (
+                <CustomizePanel data={resume.data} style={resume.style} setStyle={setStyle} />
+              )}
+            </motion.div>
           </div>
         </aside>
 
-        <main className={cx('min-w-0 flex-1 overflow-y-auto', mobileView === 'edit' && 'hidden lg:block')}>
-          <div className="sticky top-0 z-10 flex justify-center py-2">
-            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200 backdrop-blur">
+        <main className={cx('canvas-dots min-w-0 flex-1 overflow-y-auto', mobileView === 'edit' && 'hidden lg:block')}>
+          <div className="sticky top-0 z-10 flex justify-center py-3">
+            <span className="eyebrow rounded-full bg-paper/90 px-3 py-1.5 shadow-sm ring-1 ring-line backdrop-blur">
               {pageCount} {pageCount === 1 ? 'page' : 'pages'} · {resume.style.pageSize}
             </span>
           </div>
-          <div className="px-2 pb-24 sm:px-6 lg:pb-10">
-            <ResumePreview data={previewData ?? resume.data} style={previewStyle ?? resume.style} printable onPages={setPageCount} />
+          <div className="px-2 pb-28 sm:px-8 lg:pb-12">
+            <ResumePreview
+              data={previewData ?? resume.data}
+              style={previewStyle ?? resume.style}
+              printable
+              onPages={setPageCount}
+            />
           </div>
         </main>
       </div>
 
       {/* Mobile: switch between editor and preview */}
-      <div className="fixed bottom-4 left-1/2 z-20 flex -translate-x-1/2 rounded-full bg-slate-900 p-1 shadow-lg lg:hidden">
-        <button
-          type="button"
-          onClick={() => setMobileView('edit')}
-          className={cx('flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium', mobileView === 'edit' ? 'bg-white text-slate-900' : 'text-white')}
-        >
-          <PenLine className="size-4" /> Edit
-        </button>
-        <button
-          type="button"
-          onClick={() => setMobileView('preview')}
-          className={cx('flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium', mobileView === 'preview' ? 'bg-white text-slate-900' : 'text-white')}
-        >
-          <Eye className="size-4" /> Preview
-        </button>
+      <div
+        className="fixed bottom-5 left-1/2 z-20 flex -translate-x-1/2 rounded-full bg-ink p-1 shadow-xl shadow-ink/20 lg:hidden"
+        role="group"
+        aria-label="View"
+      >
+        {[
+          ['edit', 'Edit', PenLine],
+          ['preview', 'Preview', Eye],
+        ].map(([value, label, Icon]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={mobileView === value}
+            onClick={() => setMobileView(value)}
+            className={cx(
+              'relative flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors',
+              mobileView === value ? 'text-ink' : 'text-paper',
+            )}
+          >
+            {mobileView === value && (
+              <motion.span
+                layoutId="mobile-view"
+                className="absolute inset-0 rounded-full bg-paper"
+                transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+              />
+            )}
+            <Icon className="relative size-4" />
+            <span className="relative">{label}</span>
+          </button>
+        ))}
       </div>
 
       <ShareDialog
@@ -184,7 +257,6 @@ export default function Editor() {
         onChange={(row) => setResume((prev) => ({ ...prev, is_public: row.is_public, slug: row.slug }))}
         notify={notify}
       />
-      {toastNode}
     </div>
   )
 }
@@ -193,14 +265,23 @@ function TabButton({ active, onClick, icon, children }) {
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
       className={cx(
-        'flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium transition',
-        active ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800',
+        'relative flex items-center gap-2 py-4 text-sm font-medium transition-colors',
+        active ? 'text-ink' : 'text-muted hover:text-ink',
       )}
     >
       {icon}
       {children}
+      {active && (
+        <motion.span
+          layoutId="editor-tab"
+          className="absolute inset-x-0 -bottom-px h-0.5 bg-ink"
+          transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+        />
+      )}
     </button>
   )
 }
@@ -208,13 +289,16 @@ function TabButton({ active, onClick, icon, children }) {
 function SaveIndicator({ state }) {
   const map = {
     saved: [<Check key="i" className="size-3.5" />, 'Saved'],
-    pending: [<LoaderCircle key="i" className="size-3.5" />, 'Editing…'],
-    saving: [<LoaderCircle key="i" className="size-3.5 animate-spin" />, 'Saving…'],
+    pending: [<LoaderCircle key="i" className="size-3.5" />, 'Editing'],
+    saving: [<LoaderCircle key="i" className="size-3.5 animate-spin" />, 'Saving'],
     error: [<TriangleAlert key="i" className="size-3.5" />, 'Not saved'],
   }
   const [icon, text] = map[state]
   return (
-    <span className={cx('hidden items-center gap-1 text-xs sm:flex', state === 'error' ? 'text-red-600' : 'text-slate-400')}>
+    <span
+      className={cx('eyebrow hidden items-center gap-1.5 sm:flex', state === 'error' && 'text-red-600')}
+      aria-live="polite"
+    >
       {icon}
       {text}
     </span>
@@ -243,23 +327,37 @@ function ShareDialog({ open, onClose, resume, onChange, notify }) {
 
   return (
     <Modal open={open} onClose={onClose} title="Share your resume">
-      <div className="space-y-4">
-        <Toggle label={busy ? 'Updating…' : 'Public link'} checked={resume.is_public} onChange={toggle} />
-        <p className="text-sm text-slate-500">
-          Anyone with the link can view and download your resume. Turn it off at any time to make it private again.
+      <div className="space-y-5">
+        <p className="text-sm leading-relaxed text-ink-2">
+          Anyone with the link can view and download your resume. Switch it off at any time to make it private again.
         </p>
+        <div className="rounded-2xl border border-line bg-white p-4">
+          <Toggle label={busy ? 'Updating…' : 'Public link'} checked={resume.is_public} onChange={toggle} />
+        </div>
         {resume.is_public && url && (
           <div className="flex gap-2">
-            <input readOnly value={url} className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700" onFocus={(e) => e.target.select()} />
-            <Button variant="secondary" size="md" onClick={copy} aria-label="Copy link">
+            <input
+              readOnly
+              value={url}
+              aria-label="Public link"
+              className="min-w-0 flex-1 rounded-full border border-line bg-white px-4 py-2 font-mono text-xs text-ink-2"
+              onFocus={(e) => e.target.select()}
+            />
+            <Button variant="secondary" onClick={copy} aria-label="Copy link" className="px-3.5">
               <Copy className="size-4" />
             </Button>
-            <a href={url} target="_blank" rel="noreferrer" className="inline-flex items-center rounded-lg px-3 text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50" aria-label="Open link">
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center rounded-full px-3.5 text-ink ring-1 ring-line transition ring-inset hover:ring-ink/40"
+              aria-label="Open link in a new tab"
+            >
               <ExternalLink className="size-4" />
             </a>
           </div>
         )}
-        {isLocalMode && <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700">Demo mode: public links only work in this browser until Supabase is connected.</p>}
+        {isLocalMode && <p className="eyebrow">Demo mode: public links only work in this browser.</p>}
       </div>
     </Modal>
   )
