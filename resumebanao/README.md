@@ -61,7 +61,19 @@ The function only accepts signed-in users (JWT verification is on), and it never
 
 ## Deploy the frontend
 
-Any static host works. `vercel.json` and `public/_redirects` (for Netlify) already rewrite every route to `index.html`, so `/app/...` and `/r/...` links work. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the host's environment variables.
+### Netlify (recommended)
+
+`netlify.toml` in the repository root already sets the base directory (`resumebanao`), build command, publish folder, Node version, single-page-app routing, security headers and asset caching.
+
+1. In Netlify: **Add new site → Import an existing project → GitHub** and pick this repository. The build settings are filled in from `netlify.toml`.
+2. Under **Site configuration → Environment variables**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, then trigger a deploy. Vite bakes these in at build time, so redeploy after changing them.
+3. In Supabase, add the Netlify URL (for example `https://resumebanao.netlify.app`) as the **Site URL** and add `https://resumebanao.netlify.app/app` to the **Redirect URLs** (_Authentication → URL Configuration_). Otherwise sign-up and magic-link emails point to the wrong address.
+
+Every push to the production branch redeploys, and pull requests get preview URLs.
+
+### Other hosts
+
+Any static host works. `vercel.json` covers Vercel; elsewhere, rewrite every route to `index.html` so `/app/...` and `/r/...` links work.
 
 ## How it works
 
