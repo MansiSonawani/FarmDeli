@@ -1,26 +1,13 @@
 import DOMPurify from 'dompurify'
-import { parseRichText } from './format'
+import { legacyToHtml } from './richtext-html.js'
 
 // Descriptions are stored as HTML from the rich text editor. Resumes saved before the editor
 // existed use the older plain-text markup ("- " bullets, **bold**), which is converted on read.
 
+export { legacyToHtml }
+
 export function isHtml(text) {
   return /^\s*</.test(text || '')
-}
-
-const escapeHtml = (text) =>
-  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-
-export function legacyToHtml(text) {
-  const spans = (list) =>
-    list.map((s) => (s.bold ? `<strong>${escapeHtml(s.text)}</strong>` : escapeHtml(s.text))).join('')
-  return parseRichText(text)
-    .map((block) =>
-      block.type === 'ul'
-        ? `<ul>${block.items.map((item) => `<li><p>${spans(item)}</p></li>`).join('')}</ul>`
-        : `<p>${spans(block.spans)}</p>`,
-    )
-    .join('')
 }
 
 export function toHtml(text) {

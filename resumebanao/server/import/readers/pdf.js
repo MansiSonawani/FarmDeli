@@ -90,11 +90,15 @@ async function readDocument(pdfjs, doc) {
   }
 
   // One gutter for the whole document, found on the first page that has one and reused for the rest.
-  const gutter = pages.map((p) => findGutter(p.items, p.width)).find((g) => g !== null) ?? null
+  let gutter = pages.map((p) => findGutter(p.items, p.width)).find((g) => g !== null) ?? null
+  // A timeline layout has its dates in a narrow column beside the text they belong to. That is not a sidebar:
+  // splitting it would cut every date off from its entry, so it is read as one column and the dates become
+  // the first cell of each line.
+  if (gutter !== null && pages.some((p) => isDateColumn(p.items, gutter))) gutter = null
   const lines = []
   for (const page of pages) {
     const split = gutter !== null && crossings(page.items, gutter) <= allowedCrossings(page.items)
-    lines.push(...buildLines(page.items, page.number, split ? gutter : null))
+    lines.push(...buildLines(page.items, page.number, split ? gutter : null, page.width))
   }
   // Column-major: every page of the left column, then every page of the right one.
   lines.sort((a, b) => a.column - b.column || a.page - b.page || a.y - b.y || a.x - b.x)
@@ -171,20 +175,34 @@ function findGutter(items, pageWidth) {
   return left >= items.length * 0.12 && right >= items.length * 0.12 ? gutter : null
 }
 
+// Is the left side of the page mostly dates ("Mar 2020 – Present")? Entries have one date each but several
+// lines of text, so even a date column is far from "all items"; a third of the left items is plenty.
+function isDateColumn(items, gutter) {
+  const left = items.filter((i) => i.x + i.width / 2 < gutter)
+  if (left.length < 3) return false
+  const dated = left.filter((i) => /\b(?:19|20)\d{2}\b/.test(i.text)).length
+  return dated / left.length >= 0.33
+}
+
 const allowedCrossings = (items) => Math.max(2, Math.floor(items.length * 0.02))
 const crossings = (items, gutter) => items.filter((i) => i.x < gutter - 2 && i.x + i.width > gutter + 2).length
 
 // Groups one page's items into lines. With a gutter, items that start left of it (including full-width
 // banners that cross it) form column 0 and the rest column 1.
-function buildLines(items, page, gutter) {
+function buildLines(items, page, gutter, pageWidth) {
   const lines = []
+  // Where text can run to: the gutter for the left column, otherwise as far right of the page as the text
+  // starts from the left (margins are normally symmetric). Extractors use it to tell wrapped lines from new
+  // bullets in documents where no line happens to reach the margin.
+  const leftMargin = Math.min(...items.map((i) => i.x))
   for (const column of gutter === null ? [0] : [0, 1]) {
     const mine = items.filter((i) => gutter === null || (i.x < gutter - 2 ? 0 : 1) === column)
     mine.sort((a, b) => a.y - b.y || a.x - b.x)
+    const rightLimit = gutter !== null && column === 0 ? gutter : pageWidth - leftMargin
 
     let group = []
     const flush = () => {
-      if (group.length) lines.push(toLine(group, page, column))
+      if (group.length) lines.push({ ...toLine(group, page, column), rightLimit })
       group = []
     }
     for (const item of mine) {
@@ -197,6 +215,19 @@ function buildLines(items, page, gutter) {
   return lines
 }
 
+// Headings set with wide letter spacing come out as "E X P E R I E N C E". If nearly every piece of a cell is a
+// single letter, the spaces are spacing, not word breaks.
+function collapseLetterSpacing(text) {
+  return text
+    .split('\t')
+    .map((cell) => {
+      const tokens = cell.split(' ')
+      const single = tokens.filter((t) => /^\p{L}$/u.test(t)).length
+      return tokens.length >= 5 && single / tokens.length >= 0.8 ? tokens.join('') : cell
+    })
+    .join('\t')
+}
+
 function toLine(group, page, column) {
   group.sort((a, b) => a.x - b.x)
   let text = ''
@@ -204,6 +235,7 @@ function toLine(group, page, column) {
   let chars = 0
   const sizes = new Map()
   let firstCell = true // bold and size describe the first cell: the title, not a right-aligned date
+  const cellX = [group[0].x] // where each tab-separated cell starts
   let previous = null
   for (const item of group) {
     if (previous) {
@@ -212,6 +244,7 @@ function toLine(group, page, column) {
       if (gap > 1.0 * size) {
         text += '\t'
         firstCell = false
+        cellX.push(item.x)
       } else if (gap > 0.15 * size && !/\s$/.test(text) && !/^\s/.test(item.text)) text += ' '
     }
     const piece = previous ? item.text.replace(/^\s+/, '') : item.text.trimStart()
@@ -227,13 +260,22 @@ function toLine(group, page, column) {
   }
   const last = group[group.length - 1]
   const fontSize = [...sizes.entries()].sort((a, b) => b[1] - a[1])[0][0]
+  // The width of the line's first word and the space after it, estimated from the first item. Extractors use
+  // it to tell a wrapped line (its first word did not fit on the previous line) from a new bullet.
+  const first = group[0]
+  const firstText = first.text.trim()
+  const firstWord = firstText.split(/\s+/)[0]
+  const firstWordWidth =
+    firstWord.length < firstText.length ? (first.width * (firstWord.length + 1)) / firstText.length : first.width
   return {
-    text: text.replace(/[ ]+\t[ ]*|\t[ ]+/g, '\t').trim(),
+    text: collapseLetterSpacing(text.replace(/[ ]+\t[ ]*|\t[ ]+/g, '\t').trim()),
     page,
     column,
     x: group[0].x,
+    cellX,
     y: group[0].y,
     width: last.x + last.width - group[0].x,
+    firstWordWidth,
     fontSize,
     bold: chars > 0 && boldChars / chars >= 0.6,
   }

@@ -43,5 +43,30 @@
     "file": "person-c.docx",
     "expected": "person-c.expected.json",
     "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "person-d.docx",
+    "expected": "person-d.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "person-e.docx",
+    "expected": "person-e.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "person-f.docx",
+    "expected": "person-f.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "person-g.pdf",
+    "expected": "person-g.expected.json",
+    "dateFormat": "MMM YYYY"
+  },
+  {
+    "file": "person-h.pdf",
+    "expected": "person-h.expected.json",
+    "dateFormat": "MMM YYYY"
   }
 ]

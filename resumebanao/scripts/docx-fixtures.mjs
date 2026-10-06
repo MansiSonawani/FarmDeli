@@ -2,6 +2,7 @@
 // Used by make-import-fixtures.mjs; each fixture comes with the answer the importer should produce.
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { hardDocxFixtures } from './docx-fixtures-hard.mjs'
 import { AlignmentType, Document, HeadingLevel, LevelFormat, Packer, Paragraph, Tab, TabStopType, TextRun } from 'docx'
 
 const entry = (e) => ({
@@ -408,6 +409,7 @@ export async function buildDocxFixtures(dir) {
     ['person-a', personA, renderA],
     ['person-b', personB, renderB],
     ['person-c', personC, renderC],
+    ...hardDocxFixtures,
   ]
   const written = []
   for (const [name, data, render] of fixtures) {

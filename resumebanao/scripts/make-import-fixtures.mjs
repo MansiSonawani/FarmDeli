@@ -20,6 +20,7 @@ import { connect, migrate } from '../server/db.js'
 import { sampleResume } from '../src/lib/defaults.js'
 import { TEMPLATES, templateStyle } from '../src/lib/templates.js'
 import { buildDocxFixtures } from './docx-fixtures.mjs'
+import { buildPdfFixtures } from './pdf-fixtures.mjs'
 
 const fileUrl = (path) => pathToFileURL(path).href
 const root = fileURLToPath(new URL('..', import.meta.url))
@@ -215,6 +216,12 @@ try {
 
   // ---- DOCX fixtures ----
   for (const { file, expected, dateFormat } of await buildDocxFixtures(out)) {
+    manifest.push({ file, expected, dateFormat })
+    console.log('wrote', file)
+  }
+
+  // ---- PDFs made from hand-written HTML ----
+  for (const { file, expected, dateFormat } of await buildPdfFixtures(out, pdfBrowser)) {
     manifest.push({ file, expected, dateFormat })
     console.log('wrote', file)
   }

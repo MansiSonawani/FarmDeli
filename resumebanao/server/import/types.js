@@ -13,7 +13,10 @@
  *   out column by column, so a section that continues on the next page stays together
  * @property {number} [x]
  * @property {number} [y]
+ * @property {number} [rightLimit] PDF only: how far right text in this line's column can run (estimated)
+ * @property {number[]} [cellX] PDF only: where each tab-separated cell of the line starts
  * @property {number} [width]
+ * @property {number} [firstWordWidth] PDF only: width of the first word plus a space, for wrap detection
  * @property {number} [fontSize]
  * @property {boolean} bold
  * @property {boolean} [heading] DOCX only: the paragraph uses a heading style
