@@ -13,8 +13,10 @@ import {
   PenLine,
   Share2,
   TriangleAlert,
+  ZoomIn,
 } from 'lucide-react'
 import ContentPanel from '../components/editor/ContentPanel'
+import ResumeLightbox, { ZoomTrigger } from '../components/editor/ResumeLightbox'
 import ImportBanner from '../components/editor/ImportBanner'
 import CustomizePanel from '../components/editor/CustomizePanel'
 import ResumePreview from '../components/resume/ResumePreview'
@@ -43,6 +45,7 @@ export default function Editor() {
   const [saveState, setSaveState] = useState('saved') // saved | pending | saving | error
   const [pageCount, setPageCount] = useState(1)
   const [shareOpen, setShareOpen] = useState(false)
+  const [zoomOpen, setZoomOpen] = useState(false)
   const dirty = useRef(false)
   useDocumentTitle(resume?.title)
 
@@ -217,18 +220,28 @@ export default function Editor() {
         </aside>
 
         <main className={cx('canvas-dots min-w-0 flex-1 overflow-y-auto', mobileView === 'edit' && 'hidden lg:block')}>
-          <div className="sticky top-0 z-10 flex justify-center py-3">
+          <div className="sticky top-0 z-10 flex items-center justify-center gap-2 py-3">
             <span className="eyebrow rounded-full bg-paper/90 px-3 py-1.5 shadow-sm ring-1 ring-line backdrop-blur">
               {pageCount} {pageCount === 1 ? 'page' : 'pages'} · {resume.style.pageSize}
             </span>
+            {/* Also reachable without hovering, for touch screens and keyboards. */}
+            <button
+              type="button"
+              onClick={() => setZoomOpen(true)}
+              className="eyebrow inline-flex items-center gap-1.5 rounded-full bg-paper/90 px-3 py-1.5 shadow-sm ring-1 ring-line backdrop-blur transition-colors hover:text-ink"
+            >
+              <ZoomIn className="size-3.5" /> Full size
+            </button>
           </div>
           <div className="px-2 pb-28 sm:px-8 lg:pb-12">
-            <ResumePreview
-              data={previewData ?? resume.data}
-              style={previewStyle ?? resume.style}
-              printable
-              onPages={setPageCount}
-            />
+            <ZoomTrigger onOpen={() => setZoomOpen(true)}>
+              <ResumePreview
+                data={previewData ?? resume.data}
+                style={previewStyle ?? resume.style}
+                printable
+                onPages={setPageCount}
+              />
+            </ZoomTrigger>
           </div>
         </main>
       </div>
@@ -265,6 +278,13 @@ export default function Editor() {
           </button>
         ))}
       </div>
+
+      <ResumeLightbox
+        open={zoomOpen}
+        onClose={() => setZoomOpen(false)}
+        data={previewData ?? resume.data}
+        style={previewStyle ?? resume.style}
+      />
 
       <ShareDialog
         open={shareOpen}
