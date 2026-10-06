@@ -4,30 +4,33 @@ Design and contracts: [plan.md](plan.md). Tick a box when a task is merged and a
 
 **Order:** M1 (T1–T4) first, so the whole flow works end to end with a stub extractor. Then M2, then M3 + M4 while watching the scores from M5 (T13–T14 can start alongside M3). Estimated total: ~3–3.5 days.
 
-## M1 – End-to-end skeleton (~0.5 day)
+## M1 – End-to-end skeleton (~0.5 day) ✅ done
 
-- [ ] **T1 Contracts** – `server/import/types.js`
+- [x] **T1 Contracts** (9e447b4) – `server/import/types.js`
   - JSDoc typedefs for `Line`, `ParsedDocument`, `ImportResult`, `Warning`, `Extractor` exactly as in plan.md.
   - _Done when:_ later modules import only these shapes.
 
-- [ ] **T2 Extractor registry** – `server/import/extractors/index.js`
+- [x] **T2 Extractor registry** (9e447b4) – `server/import/extractors/index.js`
   - `getExtractor(name)`, parse `IMPORT_EXTRACTOR` (plain name or `tier:name,...` map), `extractorFor(user)` (no tiers yet → default), fallback to `rules` with a `EXTRACTOR_FALLBACK` warning when the chosen one throws.
   - Start with a stub extractor that returns only the first line as the name.
   - _Done when:_ changing the env var swaps the extractor with no code change (unit test).
 
-- [ ] **T3 Upload endpoint** – `server/app.js`, `server/import/index.js`, `server/import/limits.js`
+- [x] **T3 Upload endpoint** (9e447b4) – `server/app.js`, `server/import/index.js`, `server/import/limits.js`
   - `POST /api/import`: `requireUser`, header `X-Requested-With: resumebanao` (replaces the JSON-only CSRF rule for this route), skip the global 2 MB `bodyLimit`, own 5 MB limit, `c.req.parseBody()` for the `file` field.
   - Sniff type by magic bytes: PDF starts with `%PDF-`; DOCX is a zip (`PK\x03\x04`) containing `word/document.xml`.
   - Per-user limiter: 5 per 24 h (`server/rate-limit.js`).
   - Error responses `{ error, code }` per the table in plan.md.
-  - _Done when:_ API tests cover 200, 400, 401, 413, 415 (missing header), 429.
+  - _Done when:_ API tests cover 200, 400, 401, 403 (missing header), 413, 415 (not multipart), 429. _(A missing header is 403, not 415: see plan.md "Changed during implementation".)_
 
-- [ ] **T4 Dashboard import flow** – `src/pages/Dashboard.jsx`, `src/lib/api.js`, `src/pages/Editor.jsx`
+- [x] **T4 Dashboard import flow** (9e447b4) – `src/pages/Dashboard.jsx`, `src/lib/api.js`, `src/pages/Editor.jsx`
   - "Upload existing resume" option in the New resume dialog: file picker + drag-and-drop, accepts `.pdf,.docx`, loading state, friendly messages for each error `code`.
   - `api()` needs a multipart variant (no JSON body, sends the custom header).
   - On success: `createResume({ title: <file name without extension>, data })`, navigate to the editor with router state `{ imported: { fileName, warnings } }`; editor shows a dismissable banner ("Imported from X – please review", warnings listed).
   - Hidden when `isLocalMode`.
+  - _Implemented in:_ `src/pages/Dashboard.jsx` (CreateForm, FileDrop), `src/lib/import.js`, `src/lib/api.js` (`apiUpload`), `src/components/editor/ImportBanner.jsx`.
   - _Done when:_ uploading a file opens a new resume in the editor (verified in the browser).
+
+> **State after M1:** the pipeline runs end to end, but reading and extraction are placeholders. `readers/placeholder.js` returns one line made from the file name and the stub `rules` extractor puts it in the name field with a `STUB_EXTRACTOR` warning. T5/T6 replace the placeholder reader (delete `placeholder.js`), T7–T11 replace the stub. **Do not deploy to production before M3**, or users would get empty resumes.
 
 ## M2 – Readers (~0.5 day)
 
@@ -78,12 +81,14 @@ Design and contracts: [plan.md](plan.md). Tick a box when a task is merged and a
 ## M4 – Shared post-processing (~0.5 day)
 
 - [ ] **T12a Shared rich text helper** – `src/lib/richtext-html.js`
+  - Server-side imports of `src/` files must use explicit `.js` extensions (plain Node cannot resolve `./id`); `server/import/node-resolution.test.js` guards this, so extend it to cover the new file.
   - Move `legacyToHtml` and HTML escaping out of `src/lib/richtext.js` (which imports DOMPurify, browser-only) so the server can use it; `richtext.js` re-exports it. Existing tests keep passing.
 
 - [ ] **T12b Normalize** – `server/import/normalize.js`
   - Build sections with `newSection` / `newEntry` / `newTag`; section order and `column` from `SECTION_TYPES`; at most one section per non-custom type (merge duplicates).
   - Descriptions: bullets → HTML via `legacyToHtml`-style conversion.
   - Trim whitespace; cap lengths (title 200, description 5,000, 50 entries per section, 100 tags).
+  - Raise `NO_CONTENT` (422) when nothing usable remains (no name and no sections with content).
   - _Done when:_ output passes the same validation as resumes created in the editor.
 
 - [ ] **T12c Verify** – `server/import/verify.js`

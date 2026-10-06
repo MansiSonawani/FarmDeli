@@ -1,6 +1,6 @@
 # 0001 – Resume import (upload an existing resume, pre-fill the editor)
 
-**Status:** Planned · **Created:** 2026-10-06 · **Tasks:** [tasks.md](tasks.md)
+**Status:** In progress (M1 done) · **Created:** 2026-10-06 · **Tasks:** [tasks.md](tasks.md)
 
 ## Summary
 
@@ -160,6 +160,13 @@ The editor banner tells users to review the import; this is part of the feature,
 - Add `plan` to `users`; `extractorFor(user)` maps the plan through `IMPORT_EXTRACTOR`.
 - `verify.js` matters most here: it drops values the model invented.
 - Switch only after the scoring test shows the gain.
+
+## Changed during implementation
+
+- **M1:** a missing `X-Requested-With` header returns **403** (not 415); a non-multipart body returns 415. A request with no file field returns 400 `NO_FILE` (added to the error table).
+- **M1:** the daily limit counts files that passed the type and size checks. Files rejected for type or size do not count; files that fail later (for example a scanned PDF) do.
+- **M1:** the server runs on plain Node, so any `src/` file it imports needs explicit `.js` extensions in its own imports (Vite and Vitest do not require this, which hid the problem in tests). `server/import/node-resolution.test.js` loads the shared file under Node to guard this.
+- **M1:** until M2 and M3 land, `readers/pdf.js` and `readers/docx.js` delegate to `readers/placeholder.js` and the `rules` extractor is a stub (both marked with TODO comments).
 
 ## Risks and open questions
 
