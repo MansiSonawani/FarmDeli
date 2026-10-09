@@ -19,6 +19,12 @@ A resume builder in the style of FlowCV, built with **React + Vite + Tailwind CS
 - **Public share link** at `/r/<slug>`, which anyone can view and download.
 - **Accounts** with email + password or a magic link (Supabase Auth). Resumes are stored in Postgres with row-level security.
 - **AI writing help**: "Improve with AI" for descriptions and "Write with AI" for the profile summary. These run through a Supabase Edge Function that calls the Claude API.
+- **Job tracker** (`/app/jobs`):
+  - A board with Wishlist, Applied, Interviewing, Offer and Rejected columns. Cards move between columns by dragging or with the keyboard (Space to pick up, arrow keys to move, Space to drop).
+  - A list view, search, quick filters (remote, referrals, starred), a pipeline overview and a "Next up" list of upcoming steps.
+  - Each job has a detail panel with a stage bar, a next step that can be added to your calendar (`.ics` file), an automatic timeline, contacts, notes, and the job link.
+  - The resume you sent is saved as a copy, so later edits to the resume don't change it.
+  - On phones it switches to a list with stage filters.
 - **Autosave**, a dashboard (create, duplicate, rename, delete), and a mobile layout with an edit/preview toggle.
 - **Demo mode**: without Supabase keys the app runs fully in the browser, with data saved in `localStorage`.
 
@@ -35,7 +41,7 @@ npm run build        # production build in dist/
 ## Connect Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. **Database**: open _SQL Editor_ and run [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql). It creates the `resumes` table, the row-level-security policies and the `updated_at` trigger.
+2. **Database**: open _SQL Editor_ and run [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql). It creates the `resumes` table, the row-level-security policies and the `updated_at` trigger. Then run [`supabase/migrations/0002_jobs.sql`](supabase/migrations/0002_jobs.sql) for the job tracker's `jobs` table.
 3. **Keys**: copy `.env.example` to `.env` and fill in the values from _Project Settings → API_:
    ```
    VITE_SUPABASE_URL=https://<project-ref>.supabase.co
@@ -96,6 +102,7 @@ A resume is stored as one row: `data` (content JSON) and `style` (settings JSON)
 - Cover letters, which can reuse the same rendering engine
 - Server-side PDF generation (headless Chromium) for a one-click download without the print dialog
 - Importing an existing resume (PDF → structured data with an LLM)
-- Job tracker, a personal website with a custom domain, an email signature generator
+- Job tracker, next version: auto-fill from a job link, tailoring a resume to a job description with AI, email reminders
+- A personal website with a custom domain, an email signature generator
 - Translated interface, undo/redo, version history
 - Splitting a single very long entry across two pages (today an entry always stays on one page)

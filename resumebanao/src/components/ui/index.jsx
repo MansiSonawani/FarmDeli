@@ -195,7 +195,9 @@ export function Slider({ label, value, min, max, step = 1, unit = '', onChange }
   )
 }
 
-export function Modal({ open, title, onClose, children }) {
+const MODAL_SIZES = { md: 'max-w-md', lg: 'max-w-2xl' }
+
+export function Modal({ open, title, onClose, size = 'md', children }) {
   const panelRef = useRef(null)
 
   useEffect(() => {
@@ -226,7 +228,10 @@ export function Modal({ open, title, onClose, children }) {
             aria-modal="true"
             aria-label={title}
             onMouseDown={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-3xl bg-paper shadow-2xl shadow-ink/20"
+            className={cx(
+              'flex max-h-[calc(100dvh-1.5rem)] w-full flex-col rounded-3xl bg-paper shadow-2xl shadow-ink/20',
+              MODAL_SIZES[size],
+            )}
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98 }}
@@ -238,7 +243,7 @@ export function Modal({ open, title, onClose, children }) {
                 <X className="size-4" />
               </IconButton>
             </div>
-            <div className="px-6 pt-2 pb-6">{children}</div>
+            <div className="min-h-0 overflow-y-auto px-6 pt-2 pb-6">{children}</div>
           </motion.div>
         </motion.div>
       )}

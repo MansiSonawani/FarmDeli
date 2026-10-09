@@ -13,11 +13,12 @@
   --color-paper-3: #e1ddd4;
   --color-ink: #121211;
   --color-ink-2: #34332f;
-  --color-muted: #78766f;
+  --color-muted: #67655e; /* 4.9:1 on paper (WCAG AA for small text) */
   --color-line: #dcd8cf;
   --color-line-strong: #c8c3b8;
   --color-accent: #ff5a1f;
   --color-accent-soft: #ffe4d8;
+  --color-accent-ink: #b4380c; /* accent dark enough for text on paper/white */
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);

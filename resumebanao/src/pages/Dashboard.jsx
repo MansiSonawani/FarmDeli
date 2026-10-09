@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowUpRight, Copy, Globe, LogOut, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
-import Logo from '../components/Logo'
+import { ArrowUpRight, Copy, Globe, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
+import AppHeader from '../components/AppHeader'
+import DemoBanner from '../components/DemoBanner'
 import MaskedLines from '../components/motion/MaskedLines'
 import PageTransition from '../components/motion/PageTransition'
 import ResumeThumbnail from '../components/resume/ResumeThumbnail'
@@ -19,7 +20,7 @@ import { isLocalMode } from '../lib/supabase'
 import { templateStyle } from '../lib/templates'
 
 export default function Dashboard() {
-  const { user, signOut } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const notify = useToast()
   const [resumes, setResumes] = useState(null)
@@ -67,31 +68,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-dvh bg-paper">
-      <header className="px-5 pt-5 sm:px-8">
-        <div className="mx-auto flex h-12 max-w-7xl items-center justify-between">
-          <Link to="/" aria-label="resumebanao home">
-            <Logo />
-          </Link>
-          <div className="flex items-center gap-3">
-            <span className="eyebrow hidden sm:inline">{isLocalMode ? 'Demo mode' : user?.email}</span>
-            {!isLocalMode && (
-              <Button variant="ghost" size="sm" onClick={signOut}>
-                <LogOut className="size-4" /> Sign out
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {isLocalMode && (
-        <div className="mx-auto mt-4 max-w-7xl px-5 sm:px-8">
-          <p className="rounded-2xl border border-line bg-white/60 px-4 py-3 text-sm text-ink-2">
-            <span className="mr-2 inline-block size-1.5 -translate-y-0.5 rounded-full bg-accent" aria-hidden="true" />
-            Demo mode — resumes are saved in this browser. Add your Supabase keys to{' '}
-            <code className="font-mono text-xs">.env</code> for accounts and cloud sync.
-          </p>
-        </div>
-      )}
+      <AppHeader />
+      <DemoBanner what="resumes are" />
 
       <PageTransition>
         <main className="mx-auto max-w-7xl px-5 pt-14 pb-24 sm:px-8 sm:pt-20">

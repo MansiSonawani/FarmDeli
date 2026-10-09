@@ -12,6 +12,7 @@ const Landing = lazy(() => import('./pages/Landing'))
 const Login = lazy(() => import('./pages/Login'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Editor = lazy(() => import('./pages/Editor'))
+const Jobs = lazy(() => import('./pages/Jobs'))
 const PublicResume = lazy(() => import('./pages/PublicResume'))
 const NotFound = lazy(() => import('./pages/NotFound'))
 
@@ -48,6 +49,14 @@ export default function App() {
                     element={
                       <RequireAuth>
                         <Editor />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/app/jobs/:jobId?"
+                    element={
+                      <RequireAuth>
+                        <Jobs />
                       </RequireAuth>
                     }
                   />
