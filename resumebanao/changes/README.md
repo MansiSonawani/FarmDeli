@@ -23,3 +23,4 @@ changes/
 | #    | Change                                      | Status                                       |
 | ---- | ------------------------------------------- | -------------------------------------------- |
 | 0001 | [Resume import](0001-resume-import/plan.md) | Done (rules extractor); AI extractor pending |
+| 0002 | [Job tracker](0002-job-tracker/plan.md)     | Done (first version); next version planned   |
