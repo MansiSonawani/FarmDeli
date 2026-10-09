@@ -4,7 +4,7 @@ import Logo from './Logo'
 import { Button } from './ui'
 import { useAuth } from '../hooks/useAuth'
 import { cx } from '../lib/cx'
-import { isLocalMode } from '../lib/supabase'
+import { isLocalMode } from '../lib/api'
 
 const NAV = [
   ['/app', 'Resumes'],

@@ -252,15 +252,35 @@
   margin: 0 0 0.6mm;
 }
 
-.cv-rich ul {
+.cv-rich ul,
+.cv-rich ol {
   margin: 0 0 0.6mm;
   padding-left: 4mm;
   list-style: disc;
 }
 
+.cv-rich ol {
+  list-style: decimal;
+}
+
 .cv-rich li {
   margin: 0 0 0.4mm;
   padding-left: 0.5mm;
+}
+
+/* The editor wraps list item text in <p>. */
+.cv-rich li > p {
+  margin: 0;
+}
+
+.cv-rich u {
+  text-decoration: underline;
+}
+
+.cv-rich a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.4mm;
 }
 
 .cv-rich li::marker {

@@ -1,27 +1,14 @@
-import { supabase, isLocalMode } from './supabase'
+import { api, isLocalMode } from './api'
 import { uid } from './id'
 
-// Data access for the job tracker. Same API whether Supabase is configured or
-// the app runs in demo mode (localStorage), mirroring store.js for resumes.
-
-function unwrap({ data, error }) {
-  if (error) throw error
-  return data
-}
+// Data access for the job tracker. Uses the API in server/ in production, otherwise a
+// localStorage-backed store with the same API (demo mode), mirroring store.js for resumes.
 
 const remote = {
-  async list() {
-    return unwrap(await supabase.from('jobs').select('*').order('position', { ascending: true }))
-  },
-  async create(values) {
-    return unwrap(await supabase.from('jobs').insert(values).select('*').single())
-  },
-  async update(id, patch) {
-    return unwrap(await supabase.from('jobs').update(patch).eq('id', id).select('*').single())
-  },
-  async remove(id) {
-    unwrap(await supabase.from('jobs').delete().eq('id', id))
-  },
+  list: () => api('/jobs'),
+  create: (values) => api('/jobs', { method: 'POST', body: values }),
+  update: (id, patch) => api(`/jobs/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch }),
+  remove: (id) => api(`/jobs/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 }
 
 const LOCAL_KEY = 'resumebanao:jobs'

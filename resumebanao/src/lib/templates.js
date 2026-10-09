@@ -1,4 +1,4 @@
-import { DEFAULT_STYLE } from './defaults'
+import { DEFAULT_STYLE } from './defaults.js'
 
 // A template is just a preset of style settings for the layout engine. Users can
 // pick one and then tweak every value in the Customize panel.

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { ArrowUpRight, Copy, Globe, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
+import { ArrowUpRight, Copy, FileUp, Globe, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
 import AppHeader from '../components/AppHeader'
 import DemoBanner from '../components/DemoBanner'
 import MaskedLines from '../components/motion/MaskedLines'
@@ -15,8 +15,9 @@ import { cx } from '../lib/cx'
 import { DEFAULT_STYLE, emptyResume, sampleResume } from '../lib/defaults'
 import { timeAgo } from '../lib/format'
 import { EASE_OUT } from '../lib/motion'
+import { IMPORT_ACCEPT, checkImportFile, fileTitle, importResumeFile } from '../lib/import'
 import { createResume, deleteResume, duplicateResume, listResumes, updateResume } from '../lib/store'
-import { isLocalMode } from '../lib/supabase'
+import { isLocalMode } from '../lib/api'
 import { templateStyle } from '../lib/templates'
 
 export default function Dashboard() {
@@ -53,17 +54,20 @@ export default function Dashboard() {
     }
   }
 
-  const create = async ({ title, example }) => {
-    try {
-      const row = await createResume({
-        title,
-        data: example ? sampleResume() : emptyResume(isLocalMode ? '' : user?.email),
-        style: templateStyle(example ? 'modern' : 'classic'),
-      })
-      navigate(`/app/resume/${row.id}`)
-    } catch (e) {
-      notify(e.message, 'error')
+  // Errors are thrown for the dialog to show next to the form.
+  const create = async ({ title, example, file }) => {
+    if (file) {
+      const { data, warnings } = await importResumeFile(file)
+      const row = await createResume({ title, data, style: templateStyle('classic') })
+      navigate(`/app/resume/${row.id}`, { state: { imported: { fileName: file.name, warnings } } })
+      return
     }
+    const row = await createResume({
+      title,
+      data: example ? sampleResume() : emptyResume(isLocalMode ? '' : user?.email),
+      style: templateStyle(example ? 'modern' : 'classic'),
+    })
+    navigate(`/app/resume/${row.id}`)
   }
 
   return (
@@ -273,56 +277,141 @@ function CreateDialog({ open, onClose, onCreate }) {
 }
 
 function CreateForm({ onClose, onCreate }) {
+  const canImport = !isLocalMode // importing needs the server
   const [title, setTitle] = useState('')
-  const [example, setExample] = useState(false)
+  const [start, setStart] = useState('blank') // blank | example | import
+  const [file, setFile] = useState(null)
+  const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+
+  const pickFile = (picked) => {
+    if (!picked) return
+    const problem = checkImportFile(picked)
+    setError(problem ?? '')
+    setFile(problem ? null : picked)
+  }
 
   const submit = async (e) => {
     e.preventDefault()
+    if (start === 'import' && !file) {
+      setError('Choose a PDF or Word file to import.')
+      return
+    }
+    setError('')
     setBusy(true)
-    await onCreate({ title: title.trim() || 'Untitled resume', example })
-    setBusy(false)
+    try {
+      await onCreate({
+        title: title.trim() || (start === 'import' ? fileTitle(file) : 'Untitled resume'),
+        example: start === 'example',
+        file: start === 'import' ? file : null,
+      })
+    } catch (err) {
+      setError(err.message)
+      setBusy(false)
+    }
   }
+
+  const options = [
+    ['blank', 'Start blank', 'Empty sections, ready to fill'],
+    ['example', 'Use an example', 'Pre-filled content to edit'],
+  ]
 
   return (
     <form onSubmit={submit} className="space-y-5">
       <TextInput
         label="Name"
-        placeholder="e.g. Product Designer 2026"
+        placeholder={start === 'import' && file ? fileTitle(file) : 'e.g. Product Designer 2026'}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         autoFocus
       />
       <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Starting point">
-        {[
-          [false, 'Start blank', 'Empty sections, ready to fill'],
-          [true, 'Use an example', 'Pre-filled content to edit'],
-        ].map(([value, name, text]) => (
-          <button
-            key={name}
-            type="button"
-            role="radio"
-            aria-checked={example === value}
-            onClick={() => setExample(value)}
-            className={cx(
-              'rounded-2xl border p-4 text-left transition-colors duration-300',
-              example === value ? 'border-ink bg-white' : 'border-line hover:border-line-strong',
-            )}
-          >
-            <div className="text-sm font-medium text-ink">{name}</div>
-            <div className="mt-1 text-xs text-muted">{text}</div>
-          </button>
+        {options.map(([value, name, text]) => (
+          <StartOption key={value} checked={start === value} onClick={() => setStart(value)} name={name} text={text} />
         ))}
+        {canImport && (
+          <StartOption
+            className="col-span-2"
+            checked={start === 'import'}
+            onClick={() => setStart('import')}
+            name="Import an existing resume"
+            text="Upload a PDF or Word file and we'll fill in the details"
+          />
+        )}
       </div>
+      {start === 'import' && <FileDrop file={file} onPick={pickFile} />}
+      {error && (
+        <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
+          {error}
+        </p>
+      )}
       <div className="flex justify-end gap-2 pt-1">
         <Button type="button" variant="secondary" onClick={onClose}>
           Cancel
         </Button>
         <Button type="submit" loading={busy}>
-          Create resume
+          {start === 'import' ? 'Import resume' : 'Create resume'}
         </Button>
       </div>
     </form>
+  )
+}
+
+function StartOption({ checked, onClick, name, text, className }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={checked}
+      onClick={onClick}
+      className={cx(
+        'rounded-2xl border p-4 text-left transition-colors duration-300',
+        checked ? 'border-ink bg-white' : 'border-line hover:border-line-strong',
+        className,
+      )}
+    >
+      <div className="text-sm font-medium text-ink">{name}</div>
+      <div className="mt-1 text-xs text-muted">{text}</div>
+    </button>
+  )
+}
+
+// A click-or-drop area for the file to import.
+function FileDrop({ file, onPick }) {
+  const [over, setOver] = useState(false)
+  return (
+    <label
+      onDragOver={(e) => {
+        e.preventDefault()
+        setOver(true)
+      }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(e) => {
+        e.preventDefault()
+        setOver(false)
+        onPick(e.dataTransfer.files?.[0])
+      }}
+      className={cx(
+        'flex cursor-pointer flex-col items-center gap-1.5 rounded-2xl border border-dashed px-4 py-6 text-center transition-colors',
+        over ? 'border-ink bg-white' : 'border-line-strong hover:border-ink/50',
+      )}
+    >
+      <FileUp className="size-5 text-muted" aria-hidden="true" />
+      <span className="text-sm font-medium text-ink">{file ? file.name : 'Choose a file or drop it here'}</span>
+      <span className="text-xs text-muted">
+        {file ? `${(file.size / 1024).toFixed(0)} KB · click to change` : 'PDF or Word (.docx), up to 5 MB'}
+      </span>
+      <input
+        type="file"
+        accept={IMPORT_ACCEPT}
+        className="sr-only"
+        aria-label="Resume file"
+        onChange={(e) => {
+          onPick(e.target.files?.[0])
+          e.target.value = ''
+        }}
+      />
+    </label>
   )
 }
 

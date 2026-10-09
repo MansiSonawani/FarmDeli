@@ -1,0 +1,97 @@
+{
+  "personal": {
+    "fullName": "Aisha Khan",
+    "jobTitle": "Product Manager",
+    "email": "aisha.khan@example.com",
+    "phone": "+1 (415) 555-0132",
+    "location": "San Francisco, CA",
+    "website": "aishakhan.io",
+    "linkedin": ""
+  },
+  "sections": [
+    {
+      "type": "experience",
+      "title": "Experience",
+      "items": [
+        {
+          "title": "Product Manager",
+          "subtitle": "Orbit Apps",
+          "location": "",
+          "link": "",
+          "startDate": "2021",
+          "endDate": "",
+          "current": true,
+          "description": "- Launched the mobile app to 300k users in six months\n- Owned a roadmap shared by three engineering teams"
+        },
+        {
+          "title": "Associate Product Manager",
+          "subtitle": "Cobalt Systems",
+          "location": "",
+          "link": "",
+          "startDate": "2018",
+          "endDate": "2021",
+          "current": false,
+          "description": "- Ran weekly customer interviews and turned them into specs"
+        }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "Education",
+      "items": [
+        {
+          "title": "BS Computer Science",
+          "subtitle": "State University of Example",
+          "location": "",
+          "link": "",
+          "startDate": "2014",
+          "endDate": "2018",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "certificates",
+      "title": "Certifications",
+      "items": [
+        {
+          "title": "PMP",
+          "subtitle": "",
+          "location": "",
+          "link": "",
+          "startDate": "2022",
+          "endDate": "",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "Skills",
+      "items": [
+        {
+          "name": "Roadmapping",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Analytics",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "SQL",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Figma",
+          "info": "",
+          "level": 0
+        }
+      ]
+    }
+  ]
+}

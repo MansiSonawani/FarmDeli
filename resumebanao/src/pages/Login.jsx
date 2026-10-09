@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
-import { AnimatePresence, motion } from 'motion/react'
-import { ArrowRight, MailCheck } from 'lucide-react'
+import { motion } from 'motion/react'
+import { ArrowRight } from 'lucide-react'
 import Logo from '../components/Logo'
 import MaskedLines from '../components/motion/MaskedLines'
 import ResumeThumbnail from '../components/resume/ResumeThumbnail'
@@ -10,24 +10,22 @@ import { useAuth } from '../hooks/useAuth'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { sampleResume } from '../lib/defaults'
 import { EASE_OUT } from '../lib/motion'
-import { isLocalMode } from '../lib/supabase'
+import { isLocalMode } from '../lib/api'
 import { templateStyle } from '../lib/templates'
 
 const COPY = {
   signin: ['Welcome back.', 'Sign in to keep editing your resumes.', 'Sign in'],
   signup: ['Create your account.', 'Free forever. No credit card.', 'Create account'],
-  magic: ['Sign in by email.', 'We will send you a one-time sign-in link.', 'Send me a link'],
 }
 
 export default function Login() {
-  const { user, signIn, signUp, sendMagicLink } = useAuth()
+  const { user, signIn, signUp } = useAuth()
   const location = useLocation()
   const [mode, setMode] = useState(location.pathname === '/signup' ? 'signup' : 'signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [sent, setSent] = useState(null)
   const sample = useMemo(() => sampleResume(), [])
   useDocumentTitle(mode === 'signup' ? 'Create account' : 'Sign in')
 
@@ -41,13 +39,7 @@ export default function Login() {
     setBusy(true)
     try {
       if (mode === 'signin') await signIn(email, password)
-      else if (mode === 'signup') {
-        const { needsConfirmation } = await signUp(email, password)
-        if (needsConfirmation) setSent('confirm')
-      } else {
-        await sendMagicLink(email)
-        setSent('magic')
-      }
+      else await signUp(email, password)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -62,82 +54,55 @@ export default function Login() {
           <Logo />
         </Link>
         <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-12">
-          <AnimatePresence mode="wait">
-            {sent ? (
-              <motion.div
-                key="sent"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5, ease: EASE_OUT }}
-              >
-                <MailCheck className="size-9 text-accent" />
-                <h1 className="mt-6 text-4xl font-medium tracking-tight">Check your inbox.</h1>
-                <p className="mt-3 text-ink-2">
-                  {sent === 'magic' ? 'We sent a sign-in link' : 'We sent a confirmation link'} to{' '}
-                  <strong>{email}</strong>.
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: EASE_OUT }}
+          >
+            <h1 className="text-4xl font-medium tracking-[-0.03em] sm:text-5xl">{title}</h1>
+            <p className="mt-3 text-ink-2">{subtitle}</p>
+            <div className="mt-8">
+              <Segmented
+                value={mode}
+                onChange={(value) => {
+                  setMode(value)
+                  setError('')
+                }}
+                options={[
+                  ['signin', 'Sign in'],
+                  ['signup', 'Sign up'],
+                ]}
+              />
+            </div>
+            <form onSubmit={submit} className="mt-6 space-y-4">
+              <TextInput
+                label="Email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <TextInput
+                label="Password"
+                type="password"
+                required
+                minLength={mode === 'signup' ? 8 : undefined}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              {error && (
+                <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
+                  {error}
                 </p>
-                <button type="button" className="link-underline mt-8 text-sm font-medium" onClick={() => setSent(null)}>
-                  Use a different email
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="form"
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5, ease: EASE_OUT }}
-              >
-                <h1 className="text-4xl font-medium tracking-[-0.03em] sm:text-5xl">{title}</h1>
-                <p className="mt-3 text-ink-2">{subtitle}</p>
-                <div className="mt-8">
-                  <Segmented
-                    value={mode}
-                    onChange={(value) => {
-                      setMode(value)
-                      setError('')
-                    }}
-                    options={[
-                      ['signin', 'Sign in'],
-                      ['signup', 'Sign up'],
-                      ['magic', 'Email link'],
-                    ]}
-                  />
-                </div>
-                <form onSubmit={submit} className="mt-6 space-y-4">
-                  <TextInput
-                    label="Email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  {mode !== 'magic' && (
-                    <TextInput
-                      label="Password"
-                      type="password"
-                      required
-                      minLength={6}
-                      autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  )}
-                  {error && (
-                    <p role="alert" className="rounded-xl bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
-                      {error}
-                    </p>
-                  )}
-                  <Button type="submit" size="lg" className="group w-full" loading={busy}>
-                    {action}
-                    <ArrowRight className="size-4 transition-transform duration-500 group-hover:translate-x-1" />
-                  </Button>
-                </form>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+              <Button type="submit" size="lg" className="group w-full" loading={busy}>
+                {action}
+                <ArrowRight className="size-4 transition-transform duration-500 group-hover:translate-x-1" />
+              </Button>
+            </form>
+          </motion.div>
         </main>
         <p className="eyebrow">© {new Date().getFullYear()} resumebanao</p>
       </div>

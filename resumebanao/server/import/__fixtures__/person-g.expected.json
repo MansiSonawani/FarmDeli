@@ -1,0 +1,132 @@
+{
+  "personal": {
+    "fullName": "Hannah Weber",
+    "jobTitle": "Mechanical Engineer",
+    "email": "hannah.weber@example.de",
+    "phone": "+49 151 2345 6789",
+    "location": "Munich, Germany",
+    "website": "",
+    "linkedin": "linkedin.com/in/hannahweber"
+  },
+  "sections": [
+    {
+      "type": "experience",
+      "title": "Professional Experience",
+      "items": [
+        {
+          "title": "Senior Mechanical Engineer",
+          "subtitle": "Alpenwerk Maschinenbau GmbH",
+          "location": "Munich, Germany",
+          "link": "",
+          "startDate": "2020-03",
+          "endDate": "",
+          "current": true,
+          "description": "- Led the mechanical redesign of a hydraulic press line that reduced energy consumption by 22% and cut maintenance downtime across three production sites\n- Introduced finite element analysis into the standard design review, catching stress problems before prototypes were built\n- Supervised a team of six engineers and two apprentices"
+        },
+        {
+          "title": "Mechanical Engineer",
+          "subtitle": "Rheinstahl Technik AG",
+          "location": "Stuttgart, Germany",
+          "link": "",
+          "startDate": "2016-07",
+          "endDate": "2020-02",
+          "current": false,
+          "description": "- Designed gearbox housings for agricultural machinery and managed the supplier relationships for castings and machining\n- Wrote the test procedures used to certify every new product line"
+        }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "Education",
+      "items": [
+        {
+          "title": "MSc Mechanical Engineering",
+          "subtitle": "Technical University of Example",
+          "location": "Munich, Germany",
+          "link": "",
+          "startDate": "2013-10",
+          "endDate": "2015-09",
+          "current": false,
+          "description": "Thesis on vibration damping in lightweight gearbox housings."
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "Skills",
+      "items": [
+        {
+          "name": "SolidWorks",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "CATIA",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "ANSYS",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "MATLAB",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Finite element analysis",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Technical drawing",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Project planning",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Supplier management",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Lean manufacturing",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Python",
+          "info": "",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "type": "languages",
+      "title": "Languages",
+      "items": [
+        {
+          "name": "German",
+          "info": "",
+          "level": 4
+        },
+        {
+          "name": "English",
+          "info": "",
+          "level": 3
+        },
+        {
+          "name": "French",
+          "info": "",
+          "level": 1
+        }
+      ]
+    }
+  ]
+}

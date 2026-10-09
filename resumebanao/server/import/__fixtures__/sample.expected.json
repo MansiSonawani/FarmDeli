@@ -1,0 +1,198 @@
+{
+  "personal": {
+    "fullName": "Maya Lindqvist",
+    "jobTitle": "Senior Product Designer",
+    "email": "maya.lindqvist@example.com",
+    "phone": "+46 70 123 45 67",
+    "location": "Stockholm, Sweden",
+    "website": "mayalindqvist.design",
+    "linkedin": "linkedin.com/in/mayalindqvist"
+  },
+  "sections": [
+    {
+      "type": "summary",
+      "title": "Profile",
+      "content": "Product designer with 8+ years of experience shaping B2B and consumer products from first sketch to launch. I turn messy problems into calm, usable interfaces and love working closely with engineers and researchers.",
+      "items": []
+    },
+    {
+      "type": "experience",
+      "title": "Professional Experience",
+      "content": "",
+      "items": [
+        {
+          "title": "Senior Product Designer",
+          "subtitle": "Northwind Logistics",
+          "location": "Stockholm",
+          "link": "",
+          "startDate": "2021-03",
+          "endDate": "",
+          "current": true,
+          "description": "- Led the redesign of the shipment tracking app used by **40,000** drivers, cutting support tickets by 32%\n- Built and maintained a design system of 120+ components shared by four product teams\n- Mentored three junior designers and introduced weekly design critiques"
+        },
+        {
+          "title": "Product Designer",
+          "subtitle": "Brightleaf Studio",
+          "location": "Gothenburg",
+          "link": "",
+          "startDate": "2018-01",
+          "endDate": "2021-02",
+          "current": false,
+          "description": "- Designed onboarding flows for a fintech client that lifted activation from 41% to 58%\n- Ran 60+ usability sessions and turned findings into prioritised product roadmaps"
+        },
+        {
+          "title": "UX Designer",
+          "subtitle": "Fjord Media",
+          "location": "Uppsala",
+          "link": "",
+          "startDate": "2016-06",
+          "endDate": "2017-12",
+          "current": false,
+          "description": "- Created wireframes and prototypes for editorial tools used by 200 journalists\n- Introduced accessibility reviews into the release checklist"
+        }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "Education",
+      "content": "",
+      "items": [
+        {
+          "title": "MSc Interaction Design",
+          "subtitle": "Chalmers University of Technology",
+          "location": "Gothenburg",
+          "link": "",
+          "startDate": "2014-09",
+          "endDate": "2016-06",
+          "current": false,
+          "description": "Thesis on trust signals in delivery-tracking interfaces."
+        },
+        {
+          "title": "BSc Media Technology",
+          "subtitle": "Linköping University",
+          "location": "Norrköping",
+          "link": "",
+          "startDate": "2011-09",
+          "endDate": "2014-06",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "projects",
+      "title": "Projects",
+      "content": "",
+      "items": [
+        {
+          "title": "Open Tokens",
+          "subtitle": "Open-source design token toolkit",
+          "location": "",
+          "link": "github.com/mayal/open-tokens",
+          "startDate": "2022",
+          "endDate": "",
+          "current": false,
+          "description": "Small CLI that syncs design tokens between Figma and code; 1.2k stars."
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "Skills",
+      "content": "",
+      "items": [
+        {
+          "name": "Product strategy",
+          "info": "",
+          "level": 4
+        },
+        {
+          "name": "Interaction design",
+          "info": "",
+          "level": 4
+        },
+        {
+          "name": "Design systems",
+          "info": "",
+          "level": 4
+        },
+        {
+          "name": "Prototyping",
+          "info": "",
+          "level": 3
+        },
+        {
+          "name": "User research",
+          "info": "",
+          "level": 3
+        },
+        {
+          "name": "HTML & CSS",
+          "info": "",
+          "level": 2
+        }
+      ]
+    },
+    {
+      "type": "languages",
+      "title": "Languages",
+      "content": "",
+      "items": [
+        {
+          "name": "Swedish",
+          "info": "",
+          "level": 4
+        },
+        {
+          "name": "English",
+          "info": "",
+          "level": 3
+        },
+        {
+          "name": "German",
+          "info": "",
+          "level": 1
+        }
+      ]
+    },
+    {
+      "type": "certificates",
+      "title": "Certificates",
+      "content": "",
+      "items": [
+        {
+          "title": "Certified Usability Analyst",
+          "subtitle": "Human Factors International",
+          "location": "",
+          "link": "",
+          "startDate": "2019",
+          "endDate": "",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "interests",
+      "title": "Interests",
+      "content": "",
+      "items": [
+        {
+          "name": "Trail running",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Ceramics",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Board games",
+          "info": "",
+          "level": 0
+        }
+      ]
+    }
+  ]
+}

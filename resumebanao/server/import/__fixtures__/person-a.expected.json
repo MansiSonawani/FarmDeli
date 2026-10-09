@@ -1,0 +1,123 @@
+{
+  "personal": {
+    "fullName": "Daniel Okafor",
+    "jobTitle": "Backend Engineer",
+    "email": "daniel.okafor@example.com",
+    "phone": "+44 7700 900123",
+    "location": "London, United Kingdom",
+    "website": "danielokafor.dev",
+    "linkedin": "linkedin.com/in/danielokafor"
+  },
+  "sections": [
+    {
+      "type": "summary",
+      "title": "Profile",
+      "content": "Backend engineer with six years of experience building reliable payment and messaging services in Go and Python.",
+      "items": []
+    },
+    {
+      "type": "experience",
+      "title": "Experience",
+      "items": [
+        {
+          "title": "Senior Backend Engineer",
+          "subtitle": "Kestrel Payments",
+          "location": "London",
+          "link": "",
+          "startDate": "2021-03",
+          "endDate": "",
+          "current": true,
+          "description": "- Cut payment settlement latency by 45% by moving batch jobs to an event-driven pipeline\n- Led a team of four engineers and introduced weekly incident reviews\n- Designed the idempotency layer used by all public APIs"
+        },
+        {
+          "title": "Backend Engineer",
+          "subtitle": "Harbour Messaging",
+          "location": "Bristol",
+          "link": "",
+          "startDate": "2018-09",
+          "endDate": "2021-02",
+          "current": false,
+          "description": "- Built a notification service handling 20 million messages a day\n- Migrated the team from a monolith to services on Kubernetes"
+        },
+        {
+          "title": "Software Engineering Intern",
+          "subtitle": "Brightwater Systems",
+          "location": "Reading",
+          "link": "",
+          "startDate": "2017-06",
+          "endDate": "2017-09",
+          "current": false,
+          "description": "- Wrote integration tests for a billing platform"
+        }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "Education",
+      "items": [
+        {
+          "title": "BSc Computer Science",
+          "subtitle": "University of Exampleton",
+          "location": "Bristol",
+          "link": "",
+          "startDate": "2014-09",
+          "endDate": "2018-06",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "Skills",
+      "items": [
+        {
+          "name": "Go",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Python",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "PostgreSQL",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Kubernetes",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Terraform",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "gRPC",
+          "info": "",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "type": "languages",
+      "title": "Languages",
+      "items": [
+        {
+          "name": "English",
+          "info": "",
+          "level": 4
+        },
+        {
+          "name": "Yoruba",
+          "info": "",
+          "level": 3
+        }
+      ]
+    }
+  ]
+}
