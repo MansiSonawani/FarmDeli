@@ -1,0 +1,154 @@
+{
+  "personal": {
+    "fullName": "Priya Raman",
+    "jobTitle": "Data Analyst",
+    "email": "priya.raman@example.org",
+    "phone": "+91 98765 43210",
+    "location": "Bengaluru, India",
+    "website": "",
+    "linkedin": "linkedin.com/in/priyaraman"
+  },
+  "sections": [
+    {
+      "type": "summary",
+      "title": "Profile",
+      "content": "Analyst who turns messy retail data into decisions. Strong in SQL, dashboards and clear written summaries for non-technical teams.",
+      "items": []
+    },
+    {
+      "type": "experience",
+      "title": "Work Experience",
+      "items": [
+        {
+          "title": "Senior Data Analyst",
+          "subtitle": "Lumen Retail Analytics",
+          "location": "Bengaluru, India",
+          "link": "",
+          "startDate": "2022-01",
+          "endDate": "",
+          "current": true,
+          "description": "- Built weekly sales dashboards used by 40 store managers\n- Reduced reporting time from two days to two hours with automated SQL pipelines"
+        },
+        {
+          "title": "Data Analyst",
+          "subtitle": "Northfield Consumer Insights",
+          "location": "Chennai, India",
+          "link": "",
+          "startDate": "2018-07",
+          "endDate": "2021-12",
+          "current": false,
+          "description": "- Analysed survey data for 15 consumer brands\n- Presented findings to client leadership every quarter"
+        }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "Education",
+      "items": [
+        {
+          "title": "MSc Statistics",
+          "subtitle": "Indian Institute of Example Sciences",
+          "location": "Chennai, India",
+          "link": "",
+          "startDate": "2016-08",
+          "endDate": "2018-05",
+          "current": false,
+          "description": ""
+        },
+        {
+          "title": "BSc Mathematics",
+          "subtitle": "St. Example College",
+          "location": "Madurai, India",
+          "link": "",
+          "startDate": "2013-06",
+          "endDate": "2016-04",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "certificates",
+      "title": "Certifications",
+      "items": [
+        {
+          "title": "Certified Data Analyst",
+          "subtitle": "Example Data Institute",
+          "location": "",
+          "link": "",
+          "startDate": "2021",
+          "endDate": "",
+          "current": false,
+          "description": ""
+        },
+        {
+          "title": "Tableau Desktop Specialist",
+          "subtitle": "Example Visual Academy",
+          "location": "",
+          "link": "",
+          "startDate": "2020",
+          "endDate": "",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "Skills",
+      "items": [
+        {
+          "name": "Python",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "R",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "SQL",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Tableau",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Power BI",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Excel",
+          "info": "",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "type": "interests",
+      "title": "Interests",
+      "items": [
+        {
+          "name": "Chess",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Carnatic music",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Hiking",
+          "info": "",
+          "level": 0
+        }
+      ]
+    }
+  ]
+}

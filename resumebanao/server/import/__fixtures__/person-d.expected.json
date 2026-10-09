@@ -1,0 +1,112 @@
+{
+  "personal": {
+    "fullName": "Sofia Reyes",
+    "jobTitle": "Full Stack Developer",
+    "email": "sofia.reyes@example.es",
+    "phone": "+34 612 345 678",
+    "location": "Madrid, Spain",
+    "website": "sofiareyes.dev",
+    "linkedin": "linkedin.com/in/sofiareyes"
+  },
+  "sections": [
+    {
+      "type": "experience",
+      "title": "Work Experience",
+      "items": [
+        {
+          "title": "Full Stack Developer",
+          "subtitle": "Helix Software",
+          "location": "Madrid, Spain",
+          "link": "",
+          "startDate": "2020-01",
+          "endDate": "",
+          "current": true,
+          "description": "- Rebuilt the customer dashboard in React, cutting load time by 60%\n- Mentored four junior developers"
+        },
+        {
+          "title": "Web Developer",
+          "subtitle": "Mediterraneo Digital",
+          "location": "Valencia, Spain",
+          "link": "",
+          "startDate": "2016-09",
+          "endDate": "2019-12",
+          "current": false,
+          "description": "- Delivered 25 client websites on time\n- Introduced automated testing to the agency"
+        }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "Education",
+      "items": [
+        {
+          "title": "BSc Software Engineering",
+          "subtitle": "Universidad Ejemplo",
+          "location": "",
+          "link": "",
+          "startDate": "2012",
+          "endDate": "2016",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "Skills",
+      "items": [
+        {
+          "name": "JavaScript",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "TypeScript",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Python",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "React",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Node.js",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Django",
+          "info": "",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "type": "languages",
+      "title": "Languages",
+      "items": [
+        {
+          "name": "Spanish",
+          "info": "",
+          "level": 4
+        },
+        {
+          "name": "English",
+          "info": "",
+          "level": 3
+        },
+        {
+          "name": "German",
+          "info": "",
+          "level": 1
+        }
+      ]
+    }
+  ]
+}

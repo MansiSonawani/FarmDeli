@@ -1,0 +1,56 @@
+// Contracts for resume import. See changes/0001-resume-import/plan.md.
+// Every reader produces a ParsedDocument; every extractor consumes one and returns an ImportResult.
+
+/**
+ * One visual line of text. A large gap inside a line (a right-aligned date, a skill "pill", a table cell) is
+ * written as a tab, so a line can be split into cells. For PDFs, x/y/width/fontSize are in points, y measured
+ * from the top of the page; `bold` and `fontSize` describe the first cell.
+ * DOCX lines carry no positions; they have `heading` / `listItem` flags instead.
+ * @typedef {object} Line
+ * @property {string} text
+ * @property {number} page 1-based page number
+ * @property {number} column 0 for a single-column page or the left column, 1 for the right column; lines come
+ *   out column by column, so a section that continues on the next page stays together
+ * @property {number} [x]
+ * @property {number} [y]
+ * @property {number} [rightLimit] PDF only: how far right text in this line's column can run (estimated)
+ * @property {number[]} [cellX] PDF only: where each tab-separated cell of the line starts
+ * @property {number} [width]
+ * @property {number} [firstWordWidth] PDF only: width of the first word plus a space, for wrap detection
+ * @property {number} [fontSize]
+ * @property {boolean} bold
+ * @property {boolean} [heading] DOCX only: the paragraph uses a heading style
+ * @property {boolean} [listItem] DOCX only: the paragraph is a list item
+ */
+
+/**
+ * @typedef {object} ParsedDocument
+ * @property {'pdf' | 'docx'} kind
+ * @property {number} pageCount
+ * @property {Line[]} lines in reading order
+ * @property {string} text all line text joined with newlines
+ * @property {1 | 2} [columns] detected column count (PDF only)
+ */
+
+/**
+ * @typedef {object} Warning
+ * @property {string} code machine-readable, e.g. 'NOT_IN_SOURCE'
+ * @property {string} message shown to the user
+ * @property {string} [field]
+ */
+
+/**
+ * `data` has the same shape as `resume.data` in src/lib/defaults.js: { personal, sections }.
+ * @typedef {object} ImportResult
+ * @property {{ personal: object, sections: object[] }} data
+ * @property {Warning[]} warnings
+ * @property {string} extractor name of the extractor that produced the data, e.g. 'rules'
+ */
+
+/**
+ * @typedef {object} Extractor
+ * @property {string} name
+ * @property {(doc: ParsedDocument, ctx: { user?: { id: string, plan?: string } }) => Promise<ImportResult>} extract
+ */
+
+export {}

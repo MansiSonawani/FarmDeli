@@ -1,0 +1,81 @@
+{
+  "personal": {
+    "fullName": "Marcus Bell",
+    "jobTitle": "Sales Director",
+    "email": "marcus.bell@example.com",
+    "phone": "+1 (312) 555-0178",
+    "location": "Chicago, IL",
+    "website": "",
+    "linkedin": "linkedin.com/in/marcusbell"
+  },
+  "sections": [
+    {
+      "type": "experience",
+      "title": "Experience",
+      "items": [
+        {
+          "title": "Sales Director",
+          "subtitle": "Lakeshore Equipment Co.",
+          "location": "",
+          "link": "",
+          "startDate": "2019-04",
+          "endDate": "",
+          "current": true,
+          "description": "- Grew regional revenue from 4M to 9M USD in three years\n- Built a sales team of twelve from scratch"
+        },
+        {
+          "title": "Account Executive",
+          "subtitle": "Prairie Software",
+          "location": "",
+          "link": "",
+          "startDate": "2014-02",
+          "endDate": "2019-03",
+          "current": false,
+          "description": "- Closed the largest contract in company history\n- Ranked first in sales for four years running"
+        }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "Education",
+      "items": [
+        {
+          "title": "BBA Marketing",
+          "subtitle": "Midwest State University",
+          "location": "",
+          "link": "",
+          "startDate": "2010-09",
+          "endDate": "2014-05",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "Skills",
+      "items": [
+        {
+          "name": "Negotiation",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Forecasting",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Salesforce",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Coaching",
+          "info": "",
+          "level": 0
+        }
+      ]
+    }
+  ]
+}

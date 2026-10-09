@@ -1,0 +1,118 @@
+{
+  "personal": {
+    "fullName": "Tom Hendricks",
+    "jobTitle": "Operations Manager",
+    "email": "tom.hendricks@example.co.uk",
+    "phone": "07700 900456",
+    "location": "Leeds, UK",
+    "website": "",
+    "linkedin": "linkedin.com/in/tomhendricks"
+  },
+  "sections": [
+    {
+      "type": "summary",
+      "title": "Professional Summary",
+      "content": "- Operations manager with ten years in rail and freight logistics\n- Track record of cutting costs while improving safety\n- Comfortable leading teams of up to 60",
+      "items": []
+    },
+    {
+      "type": "experience",
+      "title": "Career History",
+      "items": [
+        {
+          "title": "Operations Manager",
+          "subtitle": "Northern Rail Services",
+          "location": "",
+          "link": "",
+          "startDate": "2019-03",
+          "endDate": "",
+          "current": true,
+          "description": "- Reduced overtime costs by 18% through better rostering\n- Led a 60 person depot team"
+        },
+        {
+          "title": "Shift Supervisor",
+          "subtitle": "Pennine Logistics",
+          "location": "",
+          "link": "",
+          "startDate": "2014",
+          "endDate": "2019",
+          "current": false,
+          "description": "- Supervised 25 drivers across two sites"
+        }
+      ]
+    },
+    {
+      "type": "education",
+      "title": "Qualifications",
+      "items": [
+        {
+          "title": "MSc Supply Chain Management",
+          "subtitle": "University of Leeds",
+          "location": "",
+          "link": "",
+          "startDate": "",
+          "endDate": "2013",
+          "current": false,
+          "description": ""
+        },
+        {
+          "title": "NEBOSH General Certificate",
+          "subtitle": "",
+          "location": "",
+          "link": "",
+          "startDate": "",
+          "endDate": "2018",
+          "current": false,
+          "description": ""
+        }
+      ]
+    },
+    {
+      "type": "skills",
+      "title": "Skills",
+      "items": [
+        {
+          "name": "Rostering",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Budgeting",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Health and safety",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Lean methods",
+          "info": "",
+          "level": 0
+        }
+      ]
+    },
+    {
+      "type": "interests",
+      "title": "Interests",
+      "items": [
+        {
+          "name": "Cycling",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Football",
+          "info": "",
+          "level": 0
+        },
+        {
+          "name": "Cooking",
+          "info": "",
+          "level": 0
+        }
+      ]
+    }
+  ]
+}
